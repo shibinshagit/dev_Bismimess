@@ -27,7 +27,25 @@ function Edit() {
   const [showLeaveSection, setShowLeaveSection] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestedPlaces = ['Brototype', 'Vytila', 'Infopark'];
+
+
+  const todays = new Date();
+  todays.setHours(0, 0, 0, 0); // Reset time to midnight
+  const tomorrows= new Date(todays);
+  tomorrows.setDate(todays.getDate() + 2); // Set to tomorrow
+  const formattedToday = todays.toISOString().split('T')[0]; // Format today as yyyy-mm-dd
+  const formattedTomorrow = tomorrows.toISOString().split('T')[0]; // Format tomorrow as yyyy-mm-dd
+  
+
+
   const [leaveFormData, setLeaveFormData] = useState({leaveStart: '', leaveEnd: ''});
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -42,9 +60,8 @@ function Edit() {
     const formatDate = (dateString) => {
       if (!dateString) return '';
       const date = new Date(dateString);
-      return date.toISOString().split('T')[0]; // Format to YYYY-MM-DD
+      return date.toISOString().split('T')[0];
     };
-
     const latestOrder = user.latestOrder || {};
     setFormData({
       name: user.name || '',
@@ -55,7 +72,6 @@ function Edit() {
       startDate: formatDate(latestOrder.orderStart) || '',
       endDate: formatDate(latestOrder.orderEnd) || '',
     });
-
     if (latestOrder.leave) {
       const activeLeave = latestOrder.leave.find(
         (leave) => new Date(leave.end) > new Date()
@@ -68,8 +84,6 @@ function Edit() {
       }
     }
   }, [user]);
-
-
 // ========================================================================================================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -144,7 +158,7 @@ function Edit() {
       [name]: value,
     }));
   };
-  // update ========================================================================================================
+// update ========================================================================================================
   const handleSubmit = (e) => {
     e.preventDefault();
     axios.put(`${BaseUrl}/api/updateUser/${user._id}`, formData)
@@ -235,7 +249,6 @@ function Edit() {
     });
   };
   // ========================================================================================================
- 
 
   const today = new Date();
   const twentyDaysAgo = new Date(today);
@@ -250,6 +263,7 @@ function Edit() {
   }
 
   const latestOrder = user.latestOrder || {};
+  const filteredLeaves = latestOrder.leave.filter(leave => new Date(leave.end) <= new Date());
 
   return (
     <div className="flex justify-center my-12">
@@ -405,48 +419,56 @@ function Edit() {
             </div>
             {showLeaveSection && (
               <div className="mt-4">
-                <Typography variant="h6" color="blue-gray" className="mb-2">
+                { latestOrder.leave?.length > 0 ? (
+                  <List>
+                 
+                 {filteredLeaves.length === 0 ? (
+      <Typography>No leave entries found.</Typography>
+    ) : (
+    <> 
+      <Typography variant="h6" color="blue-gray" className="mb-2">
                   Completed Leaves
                 </Typography>
-                {latestOrder.leave?.length > 0 ? (
-                  <List>
-                    {latestOrder.leave.filter(leave => new Date(leave.end) <= new Date()).map((leave, index) => (
-                      <ListItem key={index} className="mb-2">
-                        <Typography>{`Leave Start: ${leave.start}, Leave End: ${leave.end}, No. of Leaves: ${leave.numberOfLeaves}`}</Typography>
-                      </ListItem>
-                    ))}
+    { filteredLeaves.map((leave, index) => (
+      <ListItem key={index} className="mb-2 bg-yellow-400">
+      <Typography color='black'>{`Leave Start: ${formatDate(leave.start)}, Leave End: ${formatDate(leave.end)}, Leaves: ${leave.numberOfLeaves}`}</Typography>
+    </ListItem>
+    
+      ))}</>
+    )}
                   </List>
                 ) : (
-                  <Typography>No leaves available</Typography>
+                  <Typography>No completed Leaves available</Typography>
                 )}
                 <Typography variant="h6" color="blue-gray" className="mt-4 mb-2">
-                  Set Leave
+                  Active Leave
                 </Typography>
                 <div className="mb-4">
-                  <Input
-                    type="date"
-                    name="leaveStart"
-                    label="Leave Start Date"
-                    value={leaveFormData.leaveStart}
-                    onChange={handleLeaveInputChange}
-                    min={tommorrow}
-                    max={formData.endDate}
-                    required
-                    disabled={new Date(leaveFormData.leaveStart) < today && new Date(leaveFormData.leaveEnd) > today}
-                  />
-                </div>
-                <div className="mb-4">
-                  <Input
-                    type="date"
-                    name="leaveEnd"
-                    label="Leave End Date"
-                    value={leaveFormData.leaveEnd}
-                    onChange={handleLeaveInputChange}
-                    min={leaveFormData.leaveStart}
-                    max={formData.endDate}
-                    required
-                  />
-                </div>
+      {console.log('values:', formData.endDate, formattedTomorrow, leaveFormData.leaveStart, leaveFormData.leaveEnd)}
+      <Input
+        type="date"
+        name="leaveStart"
+        label="Leave Start Date"
+        value={leaveFormData.leaveStart || ''}
+        onChange={handleLeaveInputChange}
+        min={formattedTomorrow} // Set minimum date to tomorrow
+        max={formData.endDate || ''} // Ensure endDate is formatted
+        required
+        disabled={new Date(leaveFormData.leaveStart) <= new Date(formattedToday) && new Date(leaveFormData.leaveEnd) > new Date(formattedToday)}
+      />
+    </div>
+    <div className="mb-4">
+      <Input
+        type="date"
+        name="leaveEnd"
+        label="Leave End Date"
+        value={leaveFormData.leaveEnd || ''}
+        onChange={handleLeaveInputChange}
+        min={leaveFormData.leaveStart || formattedTomorrow} // Set minimum to leaveStart or tomorrow
+        max={formData.endDate || ''} // Ensure endDate is formatted
+        required
+      />
+    </div>
                 <Button color="blue" onClick={handleLeaveSubmit}>
                   Submit Leave
                 </Button>
