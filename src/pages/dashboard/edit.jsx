@@ -261,9 +261,9 @@ function Edit() {
   if (!user) {
     return <div>Loading...</div>;
   }
-
   const latestOrder = user.latestOrder || {};
-  const filteredLeaves = latestOrder.leave.filter(leave => new Date(leave.end) <= new Date());
+  const filteredLeaves = (latestOrder.leave || []).filter(leave => new Date(leave.end) <= new Date());
+  
 
   return (
     <div className="flex justify-center my-12">
