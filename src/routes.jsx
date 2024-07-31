@@ -11,6 +11,7 @@ import { SignIn, SignUp } from "@/pages/auth";
 import Add from "./pages/dashboard/add";
 import Edit from "./pages/dashboard/edit";
 import LeaveForm from "./pages/dashboard/leave";
+import Kitchen from "./pages/dashboard/kitchen";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -32,17 +33,22 @@ export const routes = [
         path: "/tables",
         element: <Tables />,
       },{
+        icon: <InformationCircleIcon {...icon} />,
+        name: "delivery",
+        path: "/delivery",
+        element: <UpcomingDelivery />,
+      },{
+        icon: <InformationCircleIcon {...icon} />,
+        name: "Kitchen",
+        path: "/kitchen",
+        element: <Kitchen />,
+      },{
         icon: <UserCircleIcon {...icon} />,
         name: "add",
         path: "/add",
         element: <Add />,
       },
       {
-        icon: <InformationCircleIcon {...icon} />,
-        name: "delivery",
-        path: "/delivery",
-        element: <UpcomingDelivery />,
-      },{
         icon: <UserCircleIcon {...icon} />,
         name: "update",
         path: "/edit",

@@ -1,4 +1,4 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   Navbar,
   Typography,
@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 export function DashboardNavbar() {
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar } = controller;
+  const navigate = useNavigate();
   const { pathname, searchTerm } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
 
@@ -73,7 +74,7 @@ export function DashboardNavbar() {
           <Menu>
             <MenuHandler>
               <IconButton variant="text" color="blue-gray">
-                <BellIcon className="h-5 w-5 text-blue-gray-500" />
+                <PlusCircleIcon className="h-5 w-5 text-blue-gray-500" onClick={() => navigate('add')}/>
               </IconButton>
             </MenuHandler>
           </Menu>
