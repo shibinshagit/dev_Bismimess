@@ -5,6 +5,9 @@ import {
   InformationCircleIcon,
   ServerStackIcon,
   RectangleStackIcon,
+  HomeModernIcon,
+  TruckIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/solid";
 import { Home, Profile, Tables, UpcomingDelivery } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
@@ -28,17 +31,17 @@ export const routes = [
         element: <Home />,
       },
       {
-        icon: <TableCellsIcon {...icon} />,
+        icon: <UserGroupIcon {...icon} />,
         name: "users",
         path: "/tables",
         element: <Tables />,
       },{
-        icon: <InformationCircleIcon {...icon} />,
+        icon: <TruckIcon {...icon} />,
         name: "delivery",
         path: "/delivery",
         element: <UpcomingDelivery />,
       },{
-        icon: <InformationCircleIcon {...icon} />,
+        icon: <HomeModernIcon {...icon} />,
         name: "Kitchen",
         path: "/kitchen",
         element: <Kitchen />,
@@ -78,7 +81,7 @@ export const routes = [
         element: <SignUp />,
       },
     ],
-  },
+  },                       
 ];
 
 export default routes;
