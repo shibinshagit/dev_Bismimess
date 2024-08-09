@@ -15,6 +15,7 @@ import Add from "./pages/dashboard/add";
 import Edit from "./pages/dashboard/edit";
 import LeaveForm from "./pages/dashboard/leave";
 import Kitchen from "./pages/dashboard/kitchen";
+import Marker from "./pages/attendance/marker";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -80,6 +81,18 @@ export const routes = [
         path: "/sign-up",
         element: <SignUp />,
       },
+    ],
+  },                       
+  {
+    title: "attendance pages",
+    layout: "attendance",
+    pages: [
+      {
+        icon: <ServerStackIcon {...icon} />,
+        name: "marker",
+        path: "/marker",
+        element: <Marker />,
+      }
     ],
   },                       
 ];

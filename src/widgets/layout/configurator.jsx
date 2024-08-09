@@ -16,6 +16,8 @@ import {
 } from "@/context";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/redux/reducers/authSlice";
+import { useNavigate } from "react-router-dom";
+
 
 function formatNumber(number, decPlaces) {
   decPlaces = Math.pow(10, decPlaces);
@@ -45,6 +47,7 @@ function formatNumber(number, decPlaces) {
 export function Configurator() {
   const [controller, dispatcher] = useMaterialTailwindController();
   const { openConfigurator, sidenavColor, sidenavType, fixedNavbar } = controller;
+  const navigate = useNavigate();
   const [stars, setStars] = React.useState(0);
   const dispatch = useDispatch()
   const handleLogout = () => {
@@ -67,6 +70,11 @@ dispatch(logout())
       .then((response) => response.json())
       .then((data) => setStars(formatNumber(data.stargazers_count, 1)));
   }, []);
+
+  const handleAttendance = () => {
+    navigate('/attendance/marker');
+  };
+  
 
   return (
     <aside
@@ -112,6 +120,35 @@ dispatch(logout())
         </div> */}
         <div className="mb-12">
           <Typography variant="h6" color="blue-gray">
+           Attendence Login 
+          </Typography>
+          <Typography variant="small" color="gray">
+            Add/Mark daily attendence
+          </Typography>
+          <div className="mt-3 flex items-center gap-2">
+            {/* <Button
+              variant={sidenavType === "dark" ? "gradient" : "outlined"}
+              onClick={() => setSidenavType(dispatcher, "dark")}
+            >
+              Dark
+            </Button> */}
+            <Button
+              variant={sidenavType === "transparent" ? "gradient" : "outlined"}
+              onClick={() => setSidenavType(dispatcher, "transparent")}
+            >
+             Add admin
+            </Button>
+            <Button
+  variant={sidenavType === "white" ? "gradient" : "outlined"}
+  onClick={handleAttendance}
+>
+  attendance
+</Button>
+
+          </div>
+        </div>
+        {/* <div className="mb-12">
+          <Typography variant="h6" color="blue-gray">
             Sidenav Types
           </Typography>
           <Typography variant="small" color="gray">
@@ -137,7 +174,7 @@ dispatch(logout())
               White
             </Button>
           </div>
-        </div>
+        </div> */}
         <div className="mb-12">
           <hr />
           <div className="flex items-center justify-between py-5">
