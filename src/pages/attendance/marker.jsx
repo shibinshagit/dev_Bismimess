@@ -111,7 +111,7 @@ export function Marker() {
   const remainingCount = usersFromRedux.length - presentCount;
 
   return (
-    <section className="p-6 flex flex-col items-center">
+    <section className="p-1 flex flex-col items-center">
       {/* Fixed Header */}
       <div className="w-full max-w-4xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6">
         <div className="flex justify-between items-center">
@@ -150,7 +150,7 @@ export function Marker() {
       </div>
 
       {/* Content below fixed header */}
-      <div className="w-full max-w-4xl mt-28"> {/* Margin to offset the fixed header */}
+      <div className="w-full max-w-4xl mt-36"> {/* Margin to offset the fixed header */}
         <Card className="p-0 shadow-xl rounded-lg overflow-x-auto">
           <table className="min-w-full bg-white rounded-lg">
             <thead>
