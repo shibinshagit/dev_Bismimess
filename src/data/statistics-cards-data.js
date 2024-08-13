@@ -11,7 +11,7 @@ export const statisticsCardsData = [
   {
     color: "gray",
     icon: UsersIcon,
-    title: "Total Orders",
+    title: "Total",
     value: "0",
     footer: {
       color: "",
@@ -22,7 +22,7 @@ export const statisticsCardsData = [
   {
     color: "green",
     icon: CookingPot,
-    title: "Breakfast Orders",
+    title: "Breakfast",
     value: "0",
     footer: {
       color: "",
@@ -33,7 +33,7 @@ export const statisticsCardsData = [
   {
     color: "orange",
     icon: CookingPot,
-    title: "Lunch Orders",
+    title: "Lunch",
     value: "0",
     footer: {
       color: "",
@@ -44,7 +44,7 @@ export const statisticsCardsData = [
   {
     color: "red",
     icon: CookingPot,
-    title: "Dinner Orders",
+    title: "Dinner",
     value: "0",
     footer: {
       color: "",

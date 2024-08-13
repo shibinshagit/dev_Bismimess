@@ -15,7 +15,7 @@ import {
   ListItem
 } from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
-import { fetchCostomers } from '@/redux/reducers/authSlice';
+import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 function Edit() {
@@ -164,7 +164,7 @@ function Edit() {
     axios.put(`${BaseUrl}/api/updateUser/${user._id}`, formData)
       .then(response => {
         if (response.status === 200) {
-          dispatch(fetchCostomers());
+          dispatch(fetchCustomers());
           alert('User updated successfully');
         } 
         else if (response.status === 204) {
@@ -194,7 +194,7 @@ function Edit() {
     })
       .then(response => {
         if (response.status === 200) {
-          dispatch(fetchCostomers());
+          dispatch(fetchCustomers());
           alert('Leave updated successfully');
         } else {
           alert('Error updating leave');
@@ -221,7 +221,7 @@ function Edit() {
         axios.delete(`${BaseUrl}/api/deleteUser/${user._id}`)
           .then(response => {
             if (response.status === 200) {
-              dispatch(fetchCostomers());
+              dispatch(fetchCustomers());
               Swal.fire('Deleted!', 'User has been deleted.', 'success');
               navigate('/dashboard/home');
             } else {

@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { BaseUrl } from '../../constants/BaseUrl';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCostomers, loginSuccess } from '@/redux/reducers/authSlice';
+import {fetchCustomers, loginSuccess } from '@/redux/reducers/authSlice';
 
 export function SignIn() {
   const dispatch = useDispatch();
@@ -34,7 +34,7 @@ export function SignIn() {
   
       if (response.status === 200) {
         const { token } = response.data;
-        dispatch(fetchCostomers());
+        dispatch(fetchCustomers());
         dispatch(loginSuccess({ token }));
         
         alert('Login successful');

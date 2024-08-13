@@ -14,7 +14,7 @@ import {
   ListItem
 } from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
-import { fetchCostomers } from '@/redux/reducers/authSlice';
+import { fetchCustomers } from '@/redux/reducers/authSlice';
 
 function Add() {
   const dispatch = useDispatch();
@@ -36,7 +36,7 @@ function Add() {
     socket.on('dataUpdated', (newData) => {
       console.log('Received data update:', newData);
       // Dispatch an action to update the state
-      dispatch(fetchCostomers()); // Replace with your actual action to refresh data
+      dispatch(fetchCustomers()); // Replace with your actual action to refresh data
     });
 
     return () => {
@@ -104,7 +104,7 @@ function Add() {
     axios.post(`${BaseUrl}/api/postorder`, formData)
       .then(response => {
         if (response.status === 200) {
-          dispatch(fetchCostomers());
+          dispatch(fetchCustomers());
           alert('User added successfully');
           setFormData({
             name: '',

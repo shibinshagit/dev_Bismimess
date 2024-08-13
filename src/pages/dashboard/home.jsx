@@ -29,7 +29,7 @@ import {
 import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { useDispatch, useSelector } from "react-redux";
 import { RefreshCcw } from "lucide-react";
-import { fetchCostomers } from "@/redux/reducers/authSlice";
+import { fetchCustomers } from "@/redux/reducers/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useMaterialTailwindController } from "@/context";
 
@@ -75,7 +75,7 @@ export function Home() {
   };
   const handleRefresh = () => {
    console.log('hello')
-   dispatch(fetchCostomers());
+   dispatch(fetchCustomers());
    navigate('/')
    nav
   };

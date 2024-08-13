@@ -15,8 +15,10 @@ import {
   setFixedNavbar,
 } from "@/context";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/redux/reducers/authSlice";
+import { attREf, logout } from "@/redux/reducers/authSlice";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { BaseUrl } from "@/constants/BaseUrl";
 
 
 function formatNumber(number, decPlaces) {
@@ -70,11 +72,28 @@ dispatch(logout())
       .then((response) => response.json())
       .then((data) => setStars(formatNumber(data.stargazers_count, 1)));
   }, []);
-
-  const handleAttendance = () => {
+const zone ='Brototype'
+  const fetchAttendanceList = (zone) => {
+    return axios.get(`${BaseUrl}/api/users`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error fetching attendance:', error);
+        return [];
+      });
+  };
+  const handleAttendance = async () => {
+    const att = await fetchAttendanceList(zone);
+    const filteredData = att.map(user => ({
+      name: user.name,
+      phone: user.phone,
+      status: user.latestOrder?.status || 'N/A'
+    }));
+    dispatch(attREf({ att: filteredData }));
     navigate('/attendance/marker');
   };
   
+
+
 
   return (
     <aside

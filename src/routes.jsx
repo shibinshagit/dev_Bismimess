@@ -38,7 +38,7 @@ export const routes = [
         element: <Tables />,
       },{
         icon: <TruckIcon {...icon} />,
-        name: "delivery",
+        name: "Supply",
         path: "/delivery",
         element: <UpcomingDelivery />,
       },{
