@@ -33,7 +33,7 @@ const userInitialState = {
   customers: [],
   orders: [],
   att: [],
-  period: 'NA',
+  period: 'upcoming',
   loading: false,
   error: null
 }
@@ -47,6 +47,7 @@ const authSlice = createSlice({
     },
     attREf(state, action) {
       state.att = action.payload.att;
+      state.period = action.payload.period;
     },
     updateUserAttendance(state, action) {
       const { phone, period, status } = action.payload;
@@ -67,6 +68,8 @@ const authSlice = createSlice({
       state.token = null;
       state.customers = [];
       state.orders = [];
+      att: [];
+      period: 'upcoming';
     },
     setOrders(state, action) {
       state.orders = action.payload.orders;

@@ -82,13 +82,13 @@ const zone ='Brototype'
       });
   };
   const handleAttendance = async () => {
-    const att = await fetchAttendanceList(zone);
-    const filteredData = att.map(user => ({
-      name: user.name,
-      phone: user.phone,
-      status: user.latestOrder?.status || 'N/A'
-    }));
-    dispatch(attREf({ att: filteredData }));
+    // const att = await fetchAttendanceList(zone);
+    // const filteredData = att.map(user => ({
+    //   name: user.name,
+    //   phone: user.phone,
+    //   status: user.latestOrder?.status || 'N/A'
+    // }));
+    // dispatch(attREf({ att: filteredData }));
     navigate('/attendance/marker');
   };
   
