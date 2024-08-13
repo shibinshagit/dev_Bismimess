@@ -111,9 +111,9 @@ export function Marker() {
   const remainingCount = usersFromRedux.length - presentCount;
 
   return (
-    <section className="mx-3 flex flex-col items-center">
+    <section className="p-6 flex flex-col">
       {/* Fixed Header */}
-      <div className="w-full max-w-4xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6">
+      <div className="w-full max-w-4xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6 flex flex-col">
         <div className="flex justify-between items-center">
           <Typography variant="h2" className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl">
             Brototype
@@ -127,8 +127,8 @@ export function Marker() {
             Download Attendance
           </Button>
         </div>
-        <div className="mt-4">
-          <div className="relative">
+        <div className="mt-4 flex items-center">
+          <div className="relative flex-1">
             <Input
               size="lg"
               placeholder="Search user by name or phone"
@@ -146,15 +146,23 @@ export function Marker() {
               </button>
             )}
           </div>
+          <div className="ml-4 text-sm text-gray-600">
+            <Typography variant="small" className="font-medium">
+              T: {usersFromRedux.length}
+            </Typography>
+            <Typography variant="small" className="font-medium">
+              R: {remainingCount}
+            </Typography>
+          </div>
         </div>
       </div>
 
       {/* Content below fixed header */}
-      <div className="w-full max-w-4xl mt-36"> {/* Margin to offset the fixed header */}
-        <Card className="p-0 shadow-xl rounded-lg overflow-x-auto">
-          <table className="min-w-full bg-white rounded-lg">
+      <div className="w-full max-w-4xl mt-32"> {/* Margin to offset the fixed header */}
+        <Card className="p-0 shadow-xl rounded-lg">
+          <table className="w-full bg-white rounded-lg">
             <thead>
-              <tr className="text-left bg-gray-100">
+              <tr className="text-left bg-gray-100 border-b">
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">Name</th>
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">Phone</th>
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">
