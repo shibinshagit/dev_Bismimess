@@ -108,6 +108,14 @@ export function Home() {
           />
         ))}
       </div>
+           {/* <RefreshCcw onClick={handleRefresh}/>
+        <DatePicker
+          selected={date}
+          onChange={handleDateChange}
+          dateFormat="yyyy-MM-dd"
+          className="form-control px-3 py-2 border border-blue-gray-300 rounded-md"
+          wrapperClassName="w-full"
+        /> */}
 
       <div className="mt-6 mb-16">
         {placeStatisticsData.map(({ place, total, breakfast, lunch, dinner }) => (
