@@ -6,10 +6,10 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { CheckBadgeIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { Clock } from 'lucide-react';
+import { Clock, Download } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { attREf, updateUserAttendance } from '@/redux/reducers/authSlice';
-import { saveAs } from 'file-saver'; // To save the file
+import { saveAs } from 'file-saver';
 import axios from 'axios';
 import { BaseUrl } from '@/constants/BaseUrl';
 
@@ -20,7 +20,7 @@ export function Marker() {
   const usersFromRedux = useSelector((state) => state.auth.att);
   const reduxPeriod = useSelector((state) => state.auth.period);
   const zone = 'Brototype';
-  const searchInputRef = useRef(null); // Reference to the search input
+  const searchInputRef = useRef(null);
 
   const fetchAttendanceList = (zone) => {
     return axios.get(`${BaseUrl}/api/users`)
@@ -36,7 +36,7 @@ export function Marker() {
       const now = new Date();
       const hour = now.getHours();
       let newPeriod = 'upcoming';
-      
+
       if (hour >= 7 && hour < 10) {
         newPeriod = 'morning';
       } else if (hour >= 12 && hour < 15) {
@@ -47,7 +47,6 @@ export function Marker() {
 
       setPeriod(newPeriod);
 
-      // Check if period has changed and call loadAtt if necessary
       if (newPeriod !== reduxPeriod) {
         loadAtt(newPeriod);
       }
@@ -57,6 +56,23 @@ export function Marker() {
     const intervalId = setInterval(updatePeriod, 60000);
     return () => clearInterval(intervalId);
   }, [reduxPeriod]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+        event.preventDefault();
+        searchInputRef.current.focus();
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, []);
 
   const loadAtt = async (newPeriod) => {
     const att = await fetchAttendanceList(zone);
@@ -70,7 +86,6 @@ export function Marker() {
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
-    // Ensure search input remains focused
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -84,14 +99,14 @@ export function Marker() {
   };
 
   const handleAttendanceClick = (user) => {
-    if (period === 'upcoming') return; // Disable action if period is upcoming
+    if (period === 'upcoming') return;
 
     const newAttendance = user.attendance === 'present' ? 'absent' : 'present';
     dispatch(updateUserAttendance({ phone: user.phone, period, status: newAttendance }));
   };
 
   const handleDownload = () => {
-    if (period === 'upcoming') return; // Disable download if period is upcoming
+    if (period === 'upcoming') return;
 
     const fileName = `${period.charAt(0).toUpperCase() + period.slice(1)} Attendance.csv`;
     const csvContent = "data:text/csv;charset=utf-8," + 
@@ -111,32 +126,34 @@ export function Marker() {
   const remainingCount = usersFromRedux.length - presentCount;
 
   return (
-    <section className="p- flex flex-col">
-      {/* Fixed Header */}
+    <section className="flex flex-col">
       <div className="w-full max-w-4xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6 flex flex-col">
         <div className="flex justify-between items-center">
           <Typography variant="h2" className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl">
             Brototype
           </Typography>
           <Button 
-            color="blue" 
+            color="dark" 
             onClick={handleDownload} 
-            className="rounded-lg shadow-sm"
-            disabled={period === 'upcoming'} // Disable download button if period is upcoming
+            className="rounded-lg shadow-sm flex"
+            disabled={period === 'upcoming'} 
           >
-            Download Attendance
+          <Download/>  {usersFromRedux.length-remainingCount}
           </Button>
         </div>
         <div className="mt-4 flex items-center">
           <div className="relative flex-1">
-            <Input
-              size="lg"
-              placeholder="Search user by name or phone"
-              value={search}
-              onChange={handleSearchChange}
-              className="border-t-blue-500 focus:border-t-blue-900 w-full rounded-lg shadow-sm pl-10 pr-14"
-              ref={searchInputRef} // Attach ref to input
-            />
+          <Input
+  size="lg"
+  label="Search user by name or phone"
+  value={search}
+  onChange={handleSearchChange}
+  className="w-full rounded-lg shadow-sm pl-10 pr-14"
+  inputProps={{
+    className: "border-gray-300 focus:border-blue-900 focus:ring-0 focus:outline-none",
+  }}
+  ref={searchInputRef}
+/>
             {search && (
               <button
                 onClick={clearSearch}
@@ -156,12 +173,10 @@ export function Marker() {
           </div>
         </div>
       </div>
-
-      {/* Content below fixed header */}
-      <div className="w-full max-w-4xl mt-36"> {/* Margin to offset the fixed header */}
+      <div className="w-full max-w-4xl mt-36">
         <Card className="p-0 shadow-xl rounded-lg">
           <table className="w-full bg-white rounded-lg">
-            <thead>
+            <thead className="sticky top-[140px] bg-gray-100 z-10">
               <tr className="text-left bg-gray-100 border-b">
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">Name</th>
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">Phone</th>
@@ -175,7 +190,7 @@ export function Marker() {
                 const isPresent = user.attendance === 'present';
                 const buttonLabel = isPresent ? 'Present' : 'Absent';
                 const buttonColor = isPresent ? 'green' : 'red';
-    
+
                 return (
                   <tr
                     key={user.phone}
@@ -191,7 +206,7 @@ export function Marker() {
                         size="sm"
                         onClick={() => handleAttendanceClick(user)}
                         className="flex items-center justify-center space-x-1 rounded-lg shadow-sm"
-                        disabled={period === 'upcoming'} // Disable button if period is upcoming
+                        disabled={period === 'upcoming'}
                       >
                         <CheckBadgeIcon className="h-5 w-5" />
                         <span>{buttonLabel}</span>
