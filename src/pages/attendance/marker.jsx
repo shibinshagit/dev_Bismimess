@@ -127,7 +127,7 @@ export function Marker() {
 
   return (
     <section className="flex flex-col">
-      <div className="w-full max-w-4xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6 flex flex-col">
+      <div className="w-full max-w-7xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6 flex flex-col">
         <div className="flex justify-between items-center">
           <Typography variant="h2" className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl">
             Brototype
@@ -173,7 +173,7 @@ export function Marker() {
           </div>
         </div>
       </div>
-      <div className="w-full max-w-4xl mt-36">
+      <div className="w-full max-w-7xl mt-36">
         <Card className="p-0 shadow-xl rounded-lg">
           <table className="w-full bg-white rounded-lg">
             <thead className="sticky top-[140px] bg-gray-100 z-10">
