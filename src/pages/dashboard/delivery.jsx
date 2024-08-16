@@ -17,20 +17,21 @@ import {
 } from "@material-tailwind/react";
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import { Phone, PhoneCallIcon } from "lucide-react";
 
 // Hardcoded delivery boys data
 const deliveryBoys = [
   {
     name: "Shabeer KM",
-    phone: "1234567890",
+    phone: "7012975494",
     points: [
-      { name: "Brototype", type: "Cluster", status: "B: Delivered" },
-      { name: "Vytila", type: "Single", users: [{ name: "Shah", status: "Delivered" }] },
+      { name: "Brototype", type: "Cluster", status: "Delivered" },
+      { name: "Vytila", type: "Single", users: [{ name: "Shah", status: "Delivered" },{ name: "Shah", status: "Out" },{ name: "Shah", status: "Out" }] },
     ],
   },
   {
     name: "Nishal",
-    phone: "0987654321",
+    phone: "9876543212",
     points: [
       { name: "Forum Mall", type: "Cluster", status: "L: Packed" },
       { name: "Maradu", type: "Single", users: [{ name: "Murshid", status: "Upcoming" }] },
@@ -88,6 +89,13 @@ export function UpcomingDelivery() {
     onAddPoint(newPoint);
     setOpenPointModal(false);
   };
+  const toggleSingleUsers = (index) => {
+    setOpenSingleUsers((prevState) => ({
+      ...prevState,
+      [index]: !prevState[index],
+    }));
+  };
+  const [openSingleUsers, setOpenSingleUsers] = useState({});
 
   return (
     <div className="mx-auto my-5 flex max-w-screen-lg flex-col gap-8">
@@ -205,53 +213,108 @@ export function UpcomingDelivery() {
     
       
 
+
+
+
+
+
+
+
+
+
         {/* Delivery Boys List */}
         <CardBody className="flex flex-col gap-4 p-4">
-          {deliveryBoys.map((boy, index) => (
-            <div key={index} className="border-b pb-4 mb-4">
-              <div
-                className="flex justify-between items-center cursor-pointer"
-                onClick={() => toggleDeliveryBoy(index)}
-              >
-                <Typography variant="h6" color="blue-gray">
-                  {boy.name} ({boy.phone})
-                </Typography>
-                <ChevronDownIcon
-                  className={`w-5 h-5 transition-transform ${
-                    openDeliveryBoy[index] ? "rotate-180" : ""
-                  }`}
-                />
+        {deliveryBoys.map((boy, index) => (
+    <div key={index} className="border-b pb-4 mb-4">
+      {/* Header Section */}
+      <div
+        className="flex justify-between items-center cursor-pointer"
+        onClick={() => toggleDeliveryBoy(index)}
+      >
+        {/* Delivery Boy Information */}
+        <div className="flex flex-col">
+          <Typography variant="h6" color="blue-gray">
+            {boy.name}
+            <a href={`tel:${boy.phone}`} className="text-green-500 hover:underline mx-3">
+            {boy.phone}
+          </a>
+          </Typography>
+          
+          {/* Phone Number */}
+         
+          
+          {/* Points Information */}
+          <div className={`text-gray-500 mt-2 flex ${openDeliveryBoy[index] ? "hidden" : ""}`}>
+            {boy.points.map((point, id) => (
+              <div key={id} className="mr-2">
+                {`${point.name}.`}
               </div>
+            ))}
+          </div>
+        </div>
 
-              {/* Points Details */}
-              <Collapse open={openDeliveryBoy[index]}>
-                <div className="pl-4 mt-4">
-                  {boy.points.map((point, idx) => (
-                    <div key={idx} className="flex items-start mb-2">
-                      <div className="w-4 h-4 rounded-full bg-blue-500 mr-4 mt-1"></div>
-                      <div>
-                        <Typography variant="small" color="blue-gray">
-                          {point.name} ({point.type})
-                          {point.type === "Cluster" && ` - ${point.status}`}
-                        </Typography>
-                        {point.type === "Single" && (
-                          <div className="ml-6">
-                            {point.users.map((user, userIdx) => (
-                              <Typography
-                                key={userIdx}
-                                variant="small"
-                                color="blue-gray"
-                              >
-                                {user.name} - {user.status}
-                              </Typography>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Collapse>
+        {/* Toggle Icon */}
+        <ChevronDownIcon
+          className={`w-5 h-5 transition-transform ${
+            openDeliveryBoy[index] ? "rotate-180" : ""
+          }`}
+        />
+      </div>
+
+        {/* Map Component */}
+<Collapse open={openDeliveryBoy[index]}>
+  <div className="pl-4 mt-4">
+    {boy.points.map((point, idx) => (
+      <div key={idx} className="relative mb-4">
+        {/* Connection Line - Only if previous point is "Delivered" */}
+        {idx !== 0 && boy.points[idx - 1].status === "Delivered" && (
+          <div className="absolute left-2 top-0 w-px h-full bg-gray-300 z-0"></div>
+        )}
+        
+        {/* Point Marker */}
+        <div className="flex items-center z-10 relative">
+          <div
+            className={`w-4 h-4 rounded-full mr-4 ${
+              point.status === "Delivered"
+                ? "bg-green-500"
+                : point.status === "Out"
+                ? "bg-yellow-500"
+                : "bg-red-500"
+            }`}
+          ></div>
+          <Typography
+            variant="small"
+            color="blue-gray"
+            onClick={() => toggleSingleUsers(idx)}
+            className="cursor-pointer hover:text-blue-700"
+          >
+            {point.name} ({point.type} {point.type === "Single" && `- ${point.users.length}`})
+            {point.type === "Cluster" && ` - ${point.status}`}
+          </Typography>
+        </div>
+
+        {/* Single Users Dropdown */}
+        {point.type === "Single" && openSingleUsers[idx] && (
+          <div className="ml-8 mt-2 pl-4 border-l-2 border-blue-200">
+            {point.users.map((user, userIdx) => (
+              <div key={userIdx} className="flex items-center mb-2">
+                <div className="w-3 h-3 rounded-full bg-green-500 mr-3"></div>
+                <Typography
+                  variant="small"
+                  color="gray"
+                >
+                  {user.name} - {user.status}
+                </Typography>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</Collapse>
+
+
             </div>
           ))}
         </CardBody>
