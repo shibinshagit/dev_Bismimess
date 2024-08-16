@@ -9,8 +9,14 @@ import {
   Select,
   Option,
   Collapse,
+  IconButton,
+  DialogFooter,
+  DialogBody,
+  DialogHeader,
+  Dialog,
 } from "@material-tailwind/react";
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 
 // Hardcoded delivery boys data
 const deliveryBoys = [
@@ -44,9 +50,6 @@ export function UpcomingDelivery() {
   const [openForm, setOpenForm] = useState(false);
   const [openDeliveryBoy, setOpenDeliveryBoy] = useState({});
 
-  // Toggle form for adding new delivery boy
-  const toggleForm = () => setOpenForm(!openForm);
-
   // Toggle delivery boy's points
   const toggleDeliveryBoy = (index) => {
     setOpenDeliveryBoy((prevState) => ({
@@ -55,49 +58,152 @@ export function UpcomingDelivery() {
     }));
   };
 
-  return (
-    <div className="mx-auto my-20 flex max-w-screen-lg flex-col gap-8">
-      <Card>
-        {/* Sticky Header Section */}
-        <CardHeader
-          color="transparent"
-          floated={false}
-          shadow={false}
-          className="m-0 p-4 sticky top-0 bg-white z-10 flex justify-between items-center"
-        >
-          <Typography variant="h6" color="blue-gray">
-            Upcoming Deliveries
-          </Typography>
-          <Button color="black" onClick={toggleForm}>
-            Add New Delivery Boy
-          </Button>
-        </CardHeader>
 
-        {/* Add New Delivery Boy Form */}
+  const [points, setPoints] = useState([{ id: '', name: '', mode: '' }]);
+  const [openPointModal, setOpenPointModal] = useState(false);
+  const [newPoint, setNewPoint] = useState({ place: '', mode: 'single' });
+
+  const toggleForm = () => setOpenForm(!openForm);
+
+  const handleAddPoint = () => {
+    setPoints([...points, { id: '', name: '', mode: '' }]);
+  };
+
+  const handleRemovePoint = (index) => {
+    setPoints(points.filter((_, i) => i !== index));
+  };
+
+  const handlePointChange = (index, value) => {
+    const updatedPoints = [...points];
+    updatedPoints[index].id = value;
+    setPoints(updatedPoints);
+  };
+
+  const handleNewPointChange = (e) => {
+    const { name, value } = e.target;
+    setNewPoint({ ...newPoint, [name]: value });
+  };
+
+  const handleAddNewPoint = () => {
+    onAddPoint(newPoint);
+    setOpenPointModal(false);
+  };
+
+  return (
+    <div className="mx-auto my-5 flex max-w-screen-lg flex-col gap-8">
+        <Button color="black" onClick={toggleForm}>
+          Add Delivery Boy+
+        </Button>
+      <Card>
+        
+      <CardHeader
+        color="transparent"
+        floated={false}
+        shadow={false}
+        className="m-0 p-4 sticky top-0 bg-white z-10 flex justify-between items-center"
+      >
         <Collapse open={openForm}>
           <CardBody className="flex flex-col gap-4 border-b p-4">
             <Input label="Name" />
             <Input label="Phone" />
-            <div className="flex gap-2">
-              <Select label="Points">
-                {pointsList.map((point) => (
-                  <Option key={point.id} value={point.id}>
-                    {point.name} ({point.mode})
-                  </Option>
-                ))}
-              </Select>
+            <div className="flex flex-col gap-4">
+              {points.map((point, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Select
+                    label={`Point ${index + 1}`}
+                    value={point.id}
+                    onChange={(e) => handlePointChange(index, e.target.value)}
+                  >
+                    {pointsList.map((pt) => (
+                      <Option key={pt.id} value={pt.id}>
+                        {pt.name} ({pt.mode})
+                      </Option>
+                    ))}
+                  </Select>
+                  <IconButton
+                    color="red"
+                    variant="text"
+                    className="w-5 h-5"
+                    onClick={() => handleRemovePoint(index)}
+                  >
+                    <XMarkIcon className="w-5 h-5" />
+                  </IconButton>
+                </div>
+              ))}
+              <div className="flex justify-between items-center">
+                <Button
+                  color="green"
+                  variant="text"
+                  className="flex items-center gap-2"
+                  onClick={handleAddPoint}
+                >
+                  <PlusIcon className="w-5 h-5" /> Add more
+                </Button>
+                <Button
+        color="orange"
+        variant="text"
+        className="flex items-center gap-2"
+        onClick={() => setOpenPointModal(true)}
+      >
+        <PlusIcon className="w-5 h-5" />  New Point
+        
+      </Button>
+
+               
+              </div>
               <Button
-                color="green"
-                variant="text"
-                className="flex items-center gap-2"
-                onClick={() => alert("Add Point Form")}
-              >
-                <PlusIcon className="w-5 h-5" /> Add Point
-              </Button>
+                  color="red"
+                  variant="filled"
+                  className="flex items-center gap-2"
+                  onClick={() => alert('Add Delivery Boy')}
+                >
+                  Submit  
+                </Button>
             </div>
-            {/* <Button color="blue">Add Delivery Boy</Button> */}
           </CardBody>
         </Collapse>
+
+      </CardHeader>
+
+      {/* Add New Point Modal */}
+      <Dialog open={openPointModal} handler={setOpenPointModal} size="sm">
+        <DialogHeader>Add New Point</DialogHeader>
+        <DialogBody className="flex flex-col gap-4">
+          <Input
+            label="Place"
+            name="place"
+            value={newPoint.place}
+            onChange={handleNewPointChange}
+          />
+          <Select
+            label="Mode"
+            name="mode"
+            value={newPoint.mode}
+            onChange={(e) =>
+              setNewPoint({ ...newPoint, mode: e.target.value })
+            }
+          >
+            <Option value="single">Single</Option>
+            <Option value="cluster">Cluster</Option>
+          </Select>
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="red"
+            onClick={() => setOpenPointModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="filled" color="black" onClick={handleAddNewPoint}>
+            Add Point
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+     
+    
+      
 
         {/* Delivery Boys List */}
         <CardBody className="flex flex-col gap-4 p-4">

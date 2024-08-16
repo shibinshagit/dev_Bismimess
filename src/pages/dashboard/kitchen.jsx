@@ -4,31 +4,56 @@ import {
   Card,
   CardHeader,
   CardBody,
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
 } from "@material-tailwind/react";
+import { kitchenStatisticsData} from "@/data";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 export function Kitchen() {
   return (
-    <div className="mx-auto my-20 flex max-w-screen-lg flex-col gap-8">
-      <Card>
-        <CardHeader
-          color="transparent"
-          floated={false}
-          shadow={false}
-          className="m-0 p-4"
-        >
-        
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4 p-4 items-center">
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRQ8PXDqBVA2pO1BwS4JW_DiFCF4hb_2gSmA&s"
-            alt="Delivery Boy"
-            className="w-64 h-64 object-cover"
-          />
-          <Typography variant="h6" color="blue-gray">
-            {/* upcoming deliveries. */}
-          </Typography>
-        </CardBody>
-      </Card>
+    <div className="mx-auto my-10 flex max-w-screen-lg flex-col gap-8">
+    
+      <div className="mt-6 mb-16">
+        {kitchenStatisticsData.map(({ place, total, breakfast, lunch, dinner }) => (
+          <Card key={place} className="mb-4 shadow-md">
+            <Menu>
+              <MenuHandler>
+                <div className="flex items-center justify-between p-4 cursor-pointer">
+                  <Typography variant="h6" color="blue-gray">
+                    {place}
+                  </Typography>
+                  <ChevronDownIcon className="w-5 h-5 text-blue-gray-600" />
+                </div>
+              </MenuHandler>
+              <MenuList className="p-4">
+                <MenuItem>
+                  <Typography variant="small" className="font-medium">
+                    Total Orders: {total}
+                  </Typography>
+                </MenuItem>
+                <MenuItem>
+                  <Typography variant="small" className="font-medium">
+                    Breakfast: {breakfast}
+                  </Typography>
+                </MenuItem>
+                <MenuItem>
+                  <Typography variant="small" className="font-medium">
+                    Lunch: {lunch}
+                  </Typography>
+                </MenuItem>
+                <MenuItem>
+                  <Typography variant="small" className="font-medium">
+                    Dinner: {dinner}
+                  </Typography>
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

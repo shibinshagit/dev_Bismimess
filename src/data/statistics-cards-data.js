@@ -62,6 +62,10 @@ export const placeStatisticsData = [
   { place: "Kakkanad", total: 200, breakfast: 70, lunch: 80, dinner: 50 },
   { place: "Lakshya", total: 90, breakfast: 30, lunch: 40, dinner: 20 },
 ];
+export const kitchenStatisticsData = [
+  { place: "Kakanadu", total: 250, breakfast: 80, lunch: 100, dinner: 70 },
+  { place: "Cusat", total: 150, breakfast: 50, lunch: 60, dinner: 40 },
+];
 
 
 export const fetchStatistics = async (date, customers) => {
