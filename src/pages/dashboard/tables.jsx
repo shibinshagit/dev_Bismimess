@@ -1,18 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMaterialTailwindController } from '@/context/index';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardBody, Typography, Avatar, Chip, Menu, MenuHandler, MenuList, MenuItem, Button } from "@material-tailwind/react";
-import { useSelector } from 'react-redux';
+import axios from 'axios';  // Import axios for making API calls
 import * as XLSX from 'xlsx';
 import { Download } from 'lucide-react';
+import { BaseUrl } from '@/constants/BaseUrl';
+
 
 export function Tables() {
   const navigate = useNavigate();
   const [controller] = useMaterialTailwindController();
   const { searchTerm } = controller;
-  const customers = useSelector((state) => state.auth.customers);
-  const [users, setUsers] = useState(customers);
+  const [users, setUsers] = useState([]);
   const [filter, setFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Fetch users from API
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`${BaseUrl}/api/users`);
+        setUsers(response.data);
+      } catch (err) {
+        setError('Error fetching users.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleUpdate = (user) => {
     navigate(`/dashboard/edit`, { state: { user } });
@@ -52,6 +71,14 @@ export function Tables() {
     user.phone.includes(searchTerm) ||
     user.place.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <div className="mt-3 mb-8 flex flex-col gap-12">

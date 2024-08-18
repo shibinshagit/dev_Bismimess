@@ -30,10 +30,11 @@ import {
 } from "@/data";
 import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { useDispatch, useSelector } from "react-redux";
-import { RefreshCcw } from "lucide-react";
 import { fetchCustomers } from "@/redux/reducers/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useMaterialTailwindController } from "@/context";
+import { BaseUrl } from "@/constants/BaseUrl";
+import axios from "axios";
 
 export function Home() {
   const dispatch = useDispatch();
@@ -44,23 +45,48 @@ export function Home() {
   const [error, setError] = useState("");
   const [controller] = useMaterialTailwindController();
   const [users, setUsers] = useState(customers);
-
-  const handleUpdate = (user) => {
-    navigate(`/dashboard/edit`, { state: { user } });
-  };
-
+  const [points, setPoints] = useState([]);
+  
   const handleFilterChange = (selectedFilter) => {
     setFilter(selectedFilter);
   };
 
   const filteredUsers = users;
 
+  const fetchPoints = async () => {
+    try {
+      const response = await axios.get(`${BaseUrl}/api/points`); // Adjust the endpoint accordingly
+      setPoints(response.data);
+    } catch (error) {
+      console.error("Error fetching points:", error);
+      setError("Error fetching points. Please try again later.");
+    }
+  };
+
+
+  // useEffect(() => {
+  //   const updateStatistics = async () => {
+  //     setLoading(true);
+  //     setError("");
+  //     try {
+  //       await fetchStatistics(date.toISOString().split("T")[0], customers);
+  //     } catch (err) {
+  //       setError("Error fetching statistics. Please try again later.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   updateStatistics();
+  // }, [date]);
+  
   useEffect(() => {
+    console.log('here',statisticsCardsData)
     const updateStatistics = async () => {
       setLoading(true);
       setError("");
       try {
-        await fetchStatistics(date.toISOString().split("T")[0], customers);
+        await fetchStatistics(date.toISOString().split("T")[0]);
       } catch (err) {
         setError("Error fetching statistics. Please try again later.");
       } finally {
@@ -69,16 +95,19 @@ export function Home() {
     };
 
     updateStatistics();
+    fetchPoints();
   }, [date]);
+
+
+  const handleUpdate = (user) => {
+    navigate(`/dashboard/edit`, { state: { user } });
+  };
+
 
   const handleDateChange = (date) => {
     setDate(date);
   };
 
-  const handleRefresh = () => {
-    dispatch(fetchCustomers());
-    navigate("/");
-  };
 
   if (loading) {
     return <p>Loading...</p>;
@@ -108,23 +137,31 @@ export function Home() {
           />
         ))}
       </div>
-           {/* <RefreshCcw onClick={handleRefresh}/>
-        <DatePicker
+<div className="flex">
+<Typography className="font-bold text-dark-600">
+           
+              
+              </Typography>
+<DatePicker
           selected={date}
           onChange={handleDateChange}
           dateFormat="yyyy-MM-dd"
           className="form-control px-3 py-2 border border-blue-gray-300 rounded-md"
-          wrapperClassName="w-full"
-        /> */}
+          wrapperClassName=""
+        />
+</div><Typography className="font-bold text-dark-600 mt-3 text-center">
+                <strong>Active Locations</strong>
+              
+              </Typography>
 
-      <div className="mt-6 mb-16">
-        {placeStatisticsData.map(({ place, total, breakfast, lunch, dinner }) => (
+<div className="mt-6 mb-16">
+        {points.map(({ place, mode }) => (
           <Card key={place} className="mb-4 shadow-md">
             <Menu>
               <MenuHandler>
                 <div className="flex items-center justify-between p-4 cursor-pointer">
                   <Typography variant="h6" color="blue-gray">
-                    {place}
+                    {place} ({mode === "cluster" ? "Cluster" : "Single"})
                   </Typography>
                   <ChevronDownIcon className="w-5 h-5 text-blue-gray-600" />
                 </div>
@@ -132,24 +169,10 @@ export function Home() {
               <MenuList className="p-4">
                 <MenuItem>
                   <Typography variant="small" className="font-medium">
-                    Total Orders: {total}
+                    Mode: {mode}
                   </Typography>
                 </MenuItem>
-                <MenuItem>
-                  <Typography variant="small" className="font-medium">
-                    Breakfast: {breakfast}
-                  </Typography>
-                </MenuItem>
-                <MenuItem>
-                  <Typography variant="small" className="font-medium">
-                    Lunch: {lunch}
-                  </Typography>
-                </MenuItem>
-                <MenuItem>
-                  <Typography variant="small" className="font-medium">
-                    Dinner: {dinner}
-                  </Typography>
-                </MenuItem>
+                {/* Add more MenuItems if there's additional data to show */}
               </MenuList>
             </Menu>
           </Card>

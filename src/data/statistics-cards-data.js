@@ -68,39 +68,57 @@ export const kitchenStatisticsData = [
 ];
 
 
-export const fetchStatistics = async (date, customers) => {
+// export const fetchStatistics = async (date, customers) => {
+//   try {
+
+//     const filteredCustomers = customers.filter(customer => customer.latestOrder);
+//     const countOrdersByPlan = (planType) => {
+//       return filteredCustomers.filter(customer =>
+//         customer.latestOrder.orderEnd >= date &&
+//         customer.latestOrder.status === 'active' &&
+//         customer.latestOrder.plan.includes(planType)
+//       ).length;
+//     };
+
+
+//     const statistics = {
+//       totalOrders: filteredCustomers.filter(customer =>
+//         customer.latestOrder.orderEnd >= date &&
+//         customer.latestOrder.status === 'active'
+//       ).length,
+//       breakfastOrders: countOrdersByPlan('B'),
+//       lunchOrders: countOrdersByPlan('L'),
+//       dinnerOrders: countOrdersByPlan('D')
+//     };
+
+//     statisticsCardsData[0].value = statistics.totalOrders;
+//     statisticsCardsData[1].value = statistics.breakfastOrders;
+//     statisticsCardsData[2].value = statistics.lunchOrders;
+//     statisticsCardsData[3].value = statistics.dinnerOrders;
+
+//   } catch (error) {
+//     console.error('Error fetching statistics:', error);
+//     throw error;
+//   }
+// };
+
+export const fetchStatistics = async (date) => {
   try {
+    const response = await axios.get(`${BaseUrl}/api/statistics`, {
+      params: { date },
+    });
 
-    const filteredCustomers = customers.filter(customer => customer.latestOrder);
-    const countOrdersByPlan = (planType) => {
-      return filteredCustomers.filter(customer =>
-        customer.latestOrder.orderEnd >= date &&
-        customer.latestOrder.status === 'active' &&
-        customer.latestOrder.plan.includes(planType)
-      ).length;
-    };
-
-
-    const statistics = {
-      totalOrders: filteredCustomers.filter(customer =>
-        customer.latestOrder.orderEnd >= date &&
-        customer.latestOrder.status === 'active'
-      ).length,
-      breakfastOrders: countOrdersByPlan('B'),
-      lunchOrders: countOrdersByPlan('L'),
-      dinnerOrders: countOrdersByPlan('D')
-    };
-
+    const statistics = response.data;
+console.log('shah',statistics.totalOrders)
     statisticsCardsData[0].value = statistics.totalOrders;
     statisticsCardsData[1].value = statistics.breakfastOrders;
     statisticsCardsData[2].value = statistics.lunchOrders;
     statisticsCardsData[3].value = statistics.dinnerOrders;
-
+    console.log('sja',statisticsCardsData)
   } catch (error) {
     console.error('Error fetching statistics:', error);
     throw error;
   }
 };
-
 
 
