@@ -34,7 +34,7 @@ export function SignIn() {
   
       if (response.status === 200) {
         const { token } = response.data;
-        dispatch(fetchCustomers());
+        // dispatch(fetchCustomers());
         dispatch(loginSuccess({ token }));
         
         alert('Login successful');
