@@ -13,11 +13,11 @@ const bikeIcon = new Icon({
 const googleMapsIconUrl = "https://cdn-icons-png.flaticon.com/512/2875/2875433.png"; // Google Maps logo URL
 
 const pointsData = [
-  { name: "Brotype", type: "single", status: "Delivered", users: ["sha", "shamal"] },
-  { name: "Vytila", type: "cluster", status: "Packed", users: ["murshid", "najaf"] },
-  { name: "Maradu", type: "single", status: "Upcoming", users: ["anwer"] },
-  { name: "Nettoor", type: "cluster", status: "Delivered", users: ["ashik", "suhaib"] },
-  { name: "Bismi mess", type: "single", status: "Packed", users: ["ansar", "ramees"] },
+  { name: "Brototype", type: "cluster", status: "Delivered", users: ["sha", "shamal"] },
+  { name: "Vytila", type: "single", status: "Packed", users: ["murshid", "najaf"] },
+  { name: "Maradu", type: "single", status: "Packed", users: ["anwer"] },
+  { name: "Nettoor", type: "single", status: "Packed", users: ["ashik", "suhaib"] },
+  { name: "Bismi mess", type: "cluster", status: "Packed", users: ["ansar", "ramees"] },
 ];
 
 export default function Points() {
@@ -30,9 +30,38 @@ export default function Points() {
   };
 
   const handleAddLocation = () => {
-    // Logic to add current location
-    alert("Current location added!");
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+  
+          // Use Google Maps Geocoding API to get place name
+          const apiKey = "YOUR_GOOGLE_MAPS_API_KEY";
+          const geocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
+  
+          fetch(geocodingUrl)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "OK" && data.results.length > 0) {
+                const placeName = data.results[0].formatted_address;
+                alert(`Current location: ${placeName} (Latitude ${latitude}, Longitude ${longitude})`);
+              } else {
+                alert(`Location found: Latitude ${latitude}, Longitude ${longitude}, but no place name available.`);
+              }
+            })
+            .catch((error) => {
+              alert("Error fetching place name: " + error.message);
+            });
+        },
+        (error) => {
+          alert("Error getting location: " + error.message);
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
