@@ -26,10 +26,13 @@ import {
   setOpenConfigurator,
   setOpenSidenav,
   setSearchTerm,
+  setOpenDeliveryForm,
 } from "@/context";
 import { useEffect, useState } from "react";
 
 export function DashboardNavbar() {
+  const [isOpen, setIsOpen] = useState(false);
+
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar } = controller;
   const navigate = useNavigate();
@@ -58,7 +61,7 @@ export function DashboardNavbar() {
       <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
         <div className="capitalize">
           <Typography variant="h6" color="blue-gray">
-            {page === 'tables' ? 'costomer data' : page === 'add' ? '' : page === 'edit' ? '' : page}
+            {page === 'tables' ? 'costomer data' : page === 'add' ? '' : page === 'edit' ? '' : page  === 'delivery' ? '' : page}
           </Typography>
         </div>
         <div className="flex items-center">
@@ -71,19 +74,31 @@ export function DashboardNavbar() {
       className="bg-white"
     />
           </div>
-          <Menu>
+          {page === 'tables' ? <Menu>
             <MenuHandler>
               <IconButton variant="text" color="blue-gray">
-                <PlusCircleIcon className="h-5 w-5 text-blue-gray-500" onClick={() => navigate('add')}/>
+                <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" onClick={() => navigate('add')}/>
               </IconButton>
             </MenuHandler>
           </Menu>
+           : page === 'add' ? '' : page === 'edit' ? '' : page  === 'delivery' ? 
+           <Menu>
+            <MenuHandler>
+              <IconButton variant="text" color="blue-gray">
+                <PlusCircleIcon className="h-7 w-7 text-blue-gray-500"  onClick={() => {
+        setIsOpen(!isOpen);
+        setOpenDeliveryForm(dispatch, !isOpen);
+      }}/>
+              </IconButton>
+            </MenuHandler>
+          </Menu>
+           : page}
           <IconButton
             variant="text"
             color="blue-gray"
             onClick={() => setOpenConfigurator(dispatch, true)}
           >
-            <Cog6ToothIcon className="h-5 w-5 text-blue-gray-500" />
+            <Cog6ToothIcon className="h-7 w-7 text-blue-gray-500" />
           </IconButton>
         </div>
       </div>

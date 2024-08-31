@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BaseUrl } from '../../constants/BaseUrl';
-import { io } from 'socket.io-client';
 import {
   Card,
   CardHeader,
@@ -28,27 +27,6 @@ function Add() {
     endDate: '',
   });
 
-  // socket=======================================================================================================================
-  const socket = io(`${BaseUrl}`);
-
-  useEffect(() => {
-    // Listen for updates from the server
-    socket.on('dataUpdated', (newData) => {
-      console.log('Received data update:', newData);
-      // Dispatch an action to update the state
-      dispatch(fetchCustomers()); // Replace with your actual action to refresh data
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [dispatch]);
-
-
-
-
-
-
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestedPlaces = ['Brototype', 'Vytila', 'Infopark'];
 
@@ -70,13 +48,12 @@ function Add() {
       endDate.setDate(0)}
       endDate.setDate(endDate.getDate() - 1);
 
-      
-
       setFormData({
         ...formData,
         startDate: value,
         endDate: endDate.toISOString().split('T')[0],
       });
+      
     } else {
       setFormData({
         ...formData,

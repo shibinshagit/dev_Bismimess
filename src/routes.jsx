@@ -16,6 +16,9 @@ import Edit from "./pages/dashboard/edit";
 import LeaveForm from "./pages/dashboard/leave";
 import Kitchen from "./pages/dashboard/kitchen";
 import Marker from "./pages/attendance/marker";
+import Delivery from "./layouts/delivery";
+import Points from "./pages/delivery/points";
+import DeliveryLogin from "./pages/delivery/deliveryLogin";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -92,6 +95,24 @@ export const routes = [
         name: "marker",
         path: "/marker",
         element: <Marker />,
+      }
+    ],
+  },                       
+  {
+    title: "delivery pages",
+    layout: "delivery",
+    pages: [
+      {
+        icon: <ServerStackIcon {...icon} />,
+        name: "login",
+        path: "/login",
+        element: <DeliveryLogin/>,
+      },
+      {
+        icon: <ServerStackIcon {...icon} />,
+        name: "location",
+        path: "/points",
+        element: <Points />,
       }
     ],
   },                       

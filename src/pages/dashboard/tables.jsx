@@ -115,71 +115,80 @@ export function Tables() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user, key) => {
-              const className = `py-3 px-5 ${key === users.length - 1 ? "" : "border-b border-blue-gray-50"}`;
-              const { latestOrder = {} } = user;
-              const { status, orderEnd } = latestOrder;
-              const formattedDate = orderEnd ? new Intl.DateTimeFormat('en-GB').format(new Date(orderEnd)) : '';
+  {filteredUsers.length === 0 ? (
+    <tr>
+      <td colSpan="3" className="text-center py-4">
+        No users found.
+      </td>
+    </tr>
+  ) : (
+    filteredUsers.map((user, key) => {
+      const className = `py-3 px-5 ${key === users.length - 1 ? "" : "border-b border-blue-gray-50"}`;
+      const { latestOrder = {} } = user;
+      const { status, orderEnd } = latestOrder;
+      const formattedDate = orderEnd ? new Intl.DateTimeFormat('en-GB').format(new Date(orderEnd)) : '';
 
-              return (
-                <tr key={user._id} className="even:bg-blue-gray-50/50">
-                  <td className={className}>
-                    <div className="flex items-center gap-4">
-                      <Avatar
-                        src="https://static.vecteezy.com/system/resources/previews/026/530/210/original/modern-person-icon-user-and-anonymous-icon-vector.jpg"
-                        alt={user.name}
-                        size="sm"
-                        variant="rounded"
-                      />
-                      <div>
-                        <Typography variant="small" color="blue-gray" className="font-semibold">
-                          {user.name}
-                        </Typography>
-                        <Typography className="text-xs font-normal text-blue-gray-500">
-                          {user.phone}
-                        </Typography>
-                      </div>
-                    </div>
-                  </td>
-                  <td className={className}>
-                    <Typography className="text-xs font-semibold text-blue-gray-600">
-                      {user.place}
-                    </Typography>
-                  </td>
-                  <td className={className}>
-                    <Chip
-                      variant="gradient"
-                      color={
-                        status === 'renew'
-                          ? 'blue-gray'
-                          : status === 'leave'
-                          ? 'yellow'
-                          : new Date(orderEnd).getTime() - new Date().getTime() <= 3 * 24 * 60 * 60 * 1000
-                          ? 'red'
-                          : status === 'active'
-                          ? 'green'
-                          : status === 'soon'
-                          ? 'blue'
-                          : 'orange'
-                      }
-                      value={status || 'Unpaid'}
-                      className="py-0.5 px-2 text-[11px] font-medium w-fit"
-                    />
-                  </td>
-                  <td className={className}>
-                    <Typography className="text-xs font-semibold text-blue-gray-600">
-                      {formattedDate || 'N/A'}
-                    </Typography>
-                  </td>
-                  <td className={className}>
-                    <Typography as="a" className="text-xs font-semibold text-blue-gray-600" onClick={() => handleUpdate(user)}>
-                      Edit
-                    </Typography>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
+      return (
+        <tr key={user._id} className="even:bg-blue-gray-50/50">
+          <td className={className}>
+            <div className="flex items-center gap-4">
+              <Avatar
+                src="https://static.vecteezy.com/system/resources/previews/026/530/210/original/modern-person-icon-user-and-anonymous-icon-vector.jpg"
+                alt={user.name}
+                size="sm"
+                variant="rounded"
+              />
+              <div>
+                <Typography variant="small" color="blue-gray" className="font-semibold">
+                  {user.name}
+                </Typography>
+                <Typography className="text-xs font-normal text-blue-gray-500">
+                  {user.phone}
+                </Typography>
+              </div>
+            </div>
+          </td>
+          <td className={className}>
+            <Typography className="text-xs font-semibold text-blue-gray-600">
+              {user.place}
+            </Typography>
+          </td>
+          <td className={className}>
+            <Chip
+              variant="gradient"
+              color={
+                status === 'expired'
+                  ? 'blue-gray'
+                  : status === 'leave'
+                  ? 'yellow'
+                  : new Date(orderEnd).getTime() - new Date().getTime() <= 3 * 24 * 60 * 60 * 1000
+                  ? 'red'
+                  : status === 'active'
+                  ? 'green'
+                  : status === 'soon'
+                  ? 'blue'
+                  : 'orange'
+              }
+              value={status || 'Unpaid'}
+              className="py-0.5 px-2 text-[11px] font-medium w-fit"
+            />
+          </td>
+          <td className={className}>
+            <Typography className="text-xs font-semibold text-blue-gray-600">
+              {formattedDate || 'N/A'}
+            </Typography>
+          </td>
+          <td className={className}>
+            <Typography as="a" className="text-xs font-semibold text-blue-gray-600" onClick={() => handleUpdate(user)}>
+              Edit
+            </Typography>
+          </td>
+        </tr>
+      );
+    })
+  )}
+</tbody>
+
         </table>
       </CardBody>
     </div>

@@ -28,6 +28,9 @@ export function reducer(state, action) {
     case "SET_SEARCH_TERM": {
       return { ...state, searchTerm: action.value };
     }
+    case "OPEN_DELIVERY_FORM": {
+      return { ...state, openDeliveryForm: action.value };
+    }
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
     }
@@ -42,6 +45,7 @@ export function MaterialTailwindControllerProvider({ children }) {
     transparentNavbar: true,
     fixedNavbar: false,
     openConfigurator: false,
+    openDeliveryForm: false,
     searchTerm: "",
   };
 
@@ -90,3 +94,5 @@ export const setOpenConfigurator = (dispatch, value) =>
   dispatch({ type: "OPEN_CONFIGURATOR", value });
 export const setSearchTerm = (dispatch, value) =>
   dispatch({ type: "SET_SEARCH_TERM", value });
+export const setOpenDeliveryForm = (dispatch, value) =>
+  dispatch({ type: "OPEN_DELIVERY_FORM", value });
