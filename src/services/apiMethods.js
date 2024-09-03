@@ -1,37 +1,13 @@
-// // src/components/CustomerList.js
-// import React, { useEffect, useState } from "react";
-// import { apiCall } from "@/api/apimethods";
+import { apiCall } from "./apiCalls";
 
-// const CustomerList = () => {
-//   const [customers, setCustomers] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
+// admin side api calls================================================================
 
-//   useEffect(() => {
-//     const fetchCustomers = async () => {
-//       try {
-//         const data = await apiCall("get", "/customers");
-//         setCustomers(data);
-//       } catch (err) {
-//         setError(err.message);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
+export const login = async (email, password) => {
+  return await apiCall('post', '/login', { email, password });
+};
 
-//     fetchCustomers();
-//   }, []);
+export const fetchUserData = async () => {
+  return await apiCall('get', '/user');
+};
 
-//   if (loading) return <p>Loading...</p>;
-//   if (error) return <p>Error: {error}</p>;
 
-//   return (
-//     <ul>
-//       {customers.map((customer) => (
-//         <li key={customer.id}>{customer.name}</li>
-//       ))}
-//     </ul>
-//   );
-// };
-
-// export default CustomerList;

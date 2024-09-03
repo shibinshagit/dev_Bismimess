@@ -9,18 +9,67 @@ import {
   Input,
   Button,
   Checkbox,
-  List,
-  ListItem
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  Select,
+  DialogFooter,
+  Option
 } from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
 import { fetchCustomers } from '@/redux/reducers/authSlice';
+import { PlusIcon } from 'lucide-react';
 
 function Add() {
+
+  const [pointsList, setPointsList] = useState([]);
+  const [openPointModal, setOpenPointModal] = useState(false);
+  const [newPoint, setNewPoint] = useState({ place: '', mode: 'single' });
+
+  // Fetch points from the backend API
+  const fetchPoints = async () => {
+    try {
+      const response = await axios.get(`${BaseUrl}/api/points`);
+      setPointsList(response.data);
+    } catch (error) {
+      console.error("Error fetching points:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPoints();
+  }, []);
+
+  const handleNewPointChange = (e) => {
+    const { name, value } = e.target;
+    setNewPoint((prevPoint) => ({
+      ...prevPoint,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (value) => {
+    setNewPoint((prevPoint) => ({
+      ...prevPoint,
+      mode: value
+    }));
+  };
+
+  const handleAddNewPoint = async () => {
+    try {
+      const response = await axios.post(`${BaseUrl}/api/points`, newPoint);
+      setPointsList([...pointsList, response.data]);
+      setOpenPointModal(false);
+    } catch (error) {
+      console.error("Error adding new point:", error);
+    }
+  };
+
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    place: '',
+    point: '',
     plan: [],
     paymentStatus: false,
     startDate: '',
@@ -28,7 +77,6 @@ function Add() {
   });
 
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestedPlaces = ['Brototype', 'Vytila', 'Infopark'];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -38,14 +86,12 @@ function Add() {
     }
 
     if (name === 'startDate') {
-      // const startDate = new Date(value);
-      // const endDate = new Date(startDate);
-      // endDate.setDate(endDate.getDate() + 29);
       const startDate = new Date(value); 
       const endDate = new Date(startDate);
       endDate.setMonth(startDate.getMonth() + 1);
       if (endDate.getDate() !== startDate.getDate()) {
-      endDate.setDate(0)}
+        endDate.setDate(0);
+      }
       endDate.setDate(endDate.getDate() - 1);
 
       setFormData({
@@ -86,12 +132,12 @@ function Add() {
           setFormData({
             name: '',
             phone: '',
-            place: '',
+            point: '',
             plan: [],
             paymentStatus: false,
             startDate: '',
             endDate: ''
-          })
+          });
         } else {
           alert(response.data.message);
         }
@@ -101,8 +147,7 @@ function Add() {
           alert('Phone number already exists');
         } else if (error.response && error.response.status === 204) {
           alert('Fill all order data');
-        }
-        else {
+        } else {
           console.error('There was an error adding the user:', error);
           alert('Error adding user');
         }
@@ -112,19 +157,19 @@ function Add() {
   const handleSuggestionClick = (place) => {
     setFormData({
       ...formData,
-      place,
+      point: place,
     });
     setShowSuggestions(false);
   };
 
-  // const today = new Date().toISOString().split('T')[0]; 
-// ============================================================================================Date change
+  // Date change
   const today = new Date();
-const twentyDaysAgo = new Date(today);
-twentyDaysAgo.setDate(today.getDate() - 29);
-const todayISO = today.toISOString().split('T')[0];
-const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
-// =============================================================================================
+  const twentyDaysAgo = new Date(today);
+  twentyDaysAgo.setDate(today.getDate() - 29);
+  const todayISO = today.toISOString().split('T')[0];
+  const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
+  // =============================================================================================
+
   return (
     <div className="flex justify-center my-12">
       <Card className="w-full max-w-lg">
@@ -133,6 +178,43 @@ const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
             Add User
           </Typography>
         </CardHeader>
+        {/* Add New Point Modal */}
+        <Dialog open={openPointModal} handler={setOpenPointModal} size="sm">
+          <DialogHeader>Add New Point</DialogHeader>
+          <DialogBody className="flex flex-col gap-4">
+            <Input
+              label="Place"
+              name="place"
+              value={newPoint.place}
+              onChange={handleNewPointChange}
+            />
+            <Select
+              label="Mode"
+              value={newPoint.mode}
+              onChange={(value) => handleSelectChange(value)}
+            >
+              <Option value="single">Single</Option>
+              <Option value="cluster">Cluster</Option>
+            </Select>
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="text"
+              color="red"
+              onClick={() => setOpenPointModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="filled"
+              color="green"
+              onClick={handleAddNewPoint}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </Dialog>
+
         <form onSubmit={handleSubmit}>
           <CardBody className="p-6">
             <div className="mb-4">
@@ -157,33 +239,32 @@ const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
                 required
               />
             </div>
+
             <div className="mb-4">
-              <Input
-                type="text"
-                name="place"
-                label="Place"
-                value={formData.place}
-                onChange={handleChange}
-                required
-              />
-              {showSuggestions && (
-                <List className="border rounded shadow-lg mt-2">
-                  {suggestedPlaces
-                    .filter((place) =>
-                      place.toLowerCase().includes(formData.place.toLowerCase())
-                    )
-                    .map((place, index) => (
-                      <ListItem
-                        key={index}
-                        onClick={() => handleSuggestionClick(place)}
-                        className="cursor-pointer"
-                      >
-                        {place}
-                      </ListItem>
-                    ))}
-                </List>
-              )}
+              <Select
+                label="Point"
+                value={formData.point}
+                onChange={(value) => setFormData(prevFormData => ({ ...prevFormData, point: value }))}
+              >
+                {pointsList.map((pt) => (
+                  <Option key={pt._id} value={pt._id}>
+                    {pt.place} ({pt.mode})
+                  </Option>
+                ))}
+              </Select>
             </div>
+
+            <div className="flex justify-between items-center">
+              <Button
+                color="orange"
+                variant="text"
+                className="flex items-center gap-2"
+                onClick={() => setOpenPointModal(true)}
+              >
+                <PlusIcon className="w-5 h-5" /> New Point
+              </Button>
+            </div>
+
             <div className="mb-4">
               <Checkbox
                 name="paymentStatus"
@@ -228,8 +309,7 @@ const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
                     name="startDate"
                     label="Start Date"
                     value={formData.startDate}
-                    // min={today} 
-                    min={twentyDaysAgoISO} 
+                    min={twentyDaysAgoISO}
                     onChange={handleChange}
                     required
                   />
@@ -240,7 +320,7 @@ const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
                     name="endDate"
                     label="End Date"
                     value={formData.endDate}
-                    readOnly // disables entering the end date manually
+                    readOnly
                     required
                   />
                 </div>
@@ -255,7 +335,7 @@ const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
               onClick={() => setFormData({
                 name: '',
                 phone: '',
-                place: '',
+                point: '',
                 plan: [],
                 paymentStatus: false,
                 startDate: '',
