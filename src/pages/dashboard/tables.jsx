@@ -6,6 +6,7 @@ import axios from 'axios';  // Import axios for making API calls
 import * as XLSX from 'xlsx';
 import { Download } from 'lucide-react';
 import { BaseUrl } from '@/constants/BaseUrl';
+import dayjs from 'dayjs';
 
 
 export function Tables() {
@@ -42,10 +43,13 @@ export function Tables() {
     const data = filteredUsers.map(user => ({
       Name: user.name,
       Phone: user.phone,
-      Place: user.place,
+      Plan: user.latestOrder?.plan?.join(', ') || '---', // Join array elements into a comma-separated string
       Status: user.latestOrder?.status || 'N/A',
-      Expire: user.latestOrder?.orderEnd ? new Intl.DateTimeFormat('en-GB').format(new Date(user.latestOrder.orderEnd)) : 'N/A'
+      Expire: user.latestOrder?.orderEnd 
+        ? new Intl.DateTimeFormat('en-GB').format(new Date(user.latestOrder.orderEnd)) 
+        : 'N/A'
     }));
+    
 
     // Create a worksheet from the data
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -53,7 +57,7 @@ export function Tables() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
 
     // Generate and download the Excel file
-    XLSX.writeFile(workbook, "Filtered_Users.xlsx");
+    XLSX.writeFile(workbook, `Users ${filteredUsers[0].location}.xlsx`);
   };
 
   const handleFilterChange = (selectedFilter) => {
@@ -68,8 +72,7 @@ export function Tables() {
     }
   }).filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.phone.includes(searchTerm) ||
-    user.place.toLowerCase().includes(searchTerm.toLowerCase())
+    user.phone.includes(searchTerm) 
   );
 
   if (loading) {
@@ -88,7 +91,7 @@ export function Tables() {
             <tr>
               {[
                 "Name",
-                "Place",
+                "Plan",
                 <Menu key="menu">
                   <MenuHandler>
                     <span>Status</span>
@@ -149,10 +152,18 @@ export function Tables() {
             </div>
           </td>
           <td className={className}>
-            <Typography className="text-xs font-semibold text-blue-gray-600">
-              {user.place}
-            </Typography>
-          </td>
+          <Typography className="text-xs font-semibold text-blue-gray-600 flex gap-1">
+  {user.latestOrder?.plan?.length ? (
+    user.latestOrder.plan.map((item, index) => (
+      <div key={index} className=''>{item}</div>
+    ))
+  ) : (
+    <div>---</div>
+  )}
+</Typography>
+
+</td>
+
           <td className={className}>
             <Chip
               variant="gradient"

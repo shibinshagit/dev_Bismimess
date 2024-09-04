@@ -20,7 +20,7 @@ export default function DeliveryLogin() {
       return;
     }
     try {
-      const response = await axios.post(`${BaseUrl}/api/delivery_login`, {
+      const response = await axios.post(`${BaseUrl}/services/delivery_login`, {
         phone,
         code,
       });
