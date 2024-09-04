@@ -35,27 +35,26 @@ export function Marker() {
     const updatePeriod = () => {
       const now = new Date();
       const hour = now.getHours();
-      let newPeriod = 'upcoming';
+      setPeriod('upcoming');
 
-      if (hour >= 7 && hour < 10) {
-        newPeriod = 'morning';
-      } else if (hour >= 12 && hour < 15) {
-        newPeriod = 'afternoon';
-      } else if (hour >= 19 && hour < 22) {
-        newPeriod = 'night';
+      if (hour >= 6 && hour < 12) {
+        setPeriod('morning');
+      } else if (hour >= 12 && hour < 16) {
+        setPeriod('afternoon');
+      } else if (hour >= 18 && hour < 23) {
+        setPeriod('night');
       }
 
-      setPeriod(newPeriod);
 
-      if (newPeriod !== reduxPeriod) {
-        loadAtt(newPeriod);
+      if (period !== reduxPeriod) {
+        loadAtt(period);
       }
     };
 
     updatePeriod();
     const intervalId = setInterval(updatePeriod, 60000);
     return () => clearInterval(intervalId);
-  }, [reduxPeriod]);
+  }, [reduxPeriod, period]);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -74,15 +73,26 @@ export function Marker() {
     };
   }, []);
 
-  const loadAtt = async (newPeriod) => {
+  const loadAtt = async (pointsetPeriod) => {
     const att = await fetchAttendanceList(zone);
     const filteredData = att.map(user => ({
       name: user.name,
       phone: user.phone,
       status: user.latestOrder?.status || 'N/A'
     }));
-    dispatch(attREf({ att: filteredData, period: newPeriod }));
+    dispatch(attREf({ att: filteredData, period: pointsetPeriod }));
   };
+
+  const reload = async () => {
+    const proceed = window.confirm("Do you want to Reload the attendance data?");
+    
+    if (proceed) {
+      console.log('ytsyty',period)
+      handleDownload();
+      loadAtt(period);
+    }
+  };
+  
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -129,7 +139,7 @@ export function Marker() {
     <section className="flex flex-col">
       <div className="w-full max-w-7xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6 flex flex-col">
         <div className="flex justify-between items-center">
-          <Typography variant="h2" className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl">
+          <Typography variant="h2" className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl" onClick={reload}>
             Brototype
           </Typography>
           <Button 
