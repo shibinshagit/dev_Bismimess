@@ -91,7 +91,6 @@ export function Tables() {
             <tr>
               {[
                 "Name",
-                "Plan",
                 <Menu key="menu">
                   <MenuHandler>
                     <span>Status</span>
@@ -104,6 +103,7 @@ export function Tables() {
                     <MenuItem onClick={() => handleFilterChange('Soon')}>Soon</MenuItem>
                   </MenuList>
                 </Menu>,
+                 "Plan",
                 "Expire",
                  <Typography as="a" className="text-xs font-semibold text-red-600 flex" onClick={() => printData(filteredUsers)}>
                   <Download/>{filteredUsers.length}
@@ -151,18 +151,6 @@ export function Tables() {
               </div>
             </div>
           </td>
-          <td className={className}>
-          <Typography className="text-xs font-semibold text-blue-gray-600 flex gap-1">
-  {user.latestOrder?.plan?.length ? (
-    user.latestOrder.plan.map((item, index) => (
-      <div key={index} className=''>{item}</div>
-    ))
-  ) : (
-    <div>---</div>
-  )}
-</Typography>
-
-</td>
 
           <td className={className}>
             <Chip
@@ -184,6 +172,18 @@ export function Tables() {
               className="py-0.5 px-2 text-[11px] font-medium w-fit"
             />
           </td>
+          <td className={className}>
+          <Typography className="text-xs font-semibold text-blue-gray-600 flex gap-1">
+  {user.latestOrder?.plan?.length ? (
+    user.latestOrder.plan.map((item, index) => (
+      <div key={index} className=''>{item}</div>
+    ))
+  ) : (
+    <div>---</div>
+  )}
+</Typography>
+
+</td>
           <td className={className}>
             <Typography className="text-xs font-semibold text-blue-gray-600">
               {formattedDate || 'N/A'}
