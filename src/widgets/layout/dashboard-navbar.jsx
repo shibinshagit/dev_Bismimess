@@ -29,6 +29,7 @@ import {
   setOpenDeliveryForm,
 } from "@/context";
 import { useEffect, useState } from "react";
+import DatePicker from "react-datepicker";
 
 export function DashboardNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,7 +66,7 @@ export function DashboardNavbar() {
           </Typography>
         </div>
         <div className="flex items-center">
-          <div className="mr-auto md:mr-4 md:w-56">
+        <div className="mr-auto md:mr-4 md:w-56"> {page === 'tables' ? 
             <Input
       type="text"
       label="Search" 
@@ -73,7 +74,13 @@ export function DashboardNavbar() {
       onChange={handleSearch}
       className="bg-white"
     />
-          </div>
+          : page === "home" ? <DatePicker
+          // selected={date}
+          // onChange={handleDateChange}
+          dateFormat="yyyy-MM-dd"
+          className="form-control px-3 py-2 border border-blue-gray-300 rounded-md"
+          wrapperClassName=""
+        /> : ''}</div> 
           {page === 'tables' ? <Menu>
             <MenuHandler>
               <IconButton variant="text" color="blue-gray">
@@ -81,7 +88,7 @@ export function DashboardNavbar() {
               </IconButton>
             </MenuHandler>
           </Menu>
-           : page === 'add' ? '' : page === 'edit' ? '' : page  === 'delivery' ? 
+           : page === 'add' ? '' : page === 'edit' ? '' : page === 'home' ? '' : page  === 'delivery' ? 
            <Menu>
             <MenuHandler>
               <IconButton variant="text" color="blue-gray">

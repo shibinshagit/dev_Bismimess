@@ -35,26 +35,27 @@ export function Marker() {
     const updatePeriod = () => {
       const now = new Date();
       const hour = now.getHours();
-      setPeriod('upcoming');
+      let newPeriod = 'upcoming';
 
       if (hour >= 6 && hour < 12) {
-        setPeriod('morning');
+        newPeriod = 'morning';
       } else if (hour >= 12 && hour < 16) {
-        setPeriod('afternoon');
+        newPeriod = 'afternoon';
       } else if (hour >= 18 && hour < 23) {
-        setPeriod('night');
+        newPeriod = 'night';
       }
 
+      setPeriod(newPeriod);
 
-      if (period !== reduxPeriod) {
-        loadAtt(period);
+      if (newPeriod !== reduxPeriod) {
+        loadAtt(newPeriod);
       }
     };
 
     updatePeriod();
     const intervalId = setInterval(updatePeriod, 60000);
     return () => clearInterval(intervalId);
-  }, [reduxPeriod, period]);
+  }, [reduxPeriod]);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -73,26 +74,15 @@ export function Marker() {
     };
   }, []);
 
-  const loadAtt = async (pointsetPeriod) => {
+  const loadAtt = async (newPeriod) => {
     const att = await fetchAttendanceList(zone);
     const filteredData = att.map(user => ({
       name: user.name,
       phone: user.phone,
       status: user.latestOrder?.status || 'N/A'
     }));
-    dispatch(attREf({ att: filteredData, period: pointsetPeriod }));
+    dispatch(attREf({ att: filteredData, period: newPeriod }));
   };
-
-  const reload = async () => {
-    const proceed = window.confirm("Do you want to Reload the attendance data?");
-    
-    if (proceed) {
-      console.log('ytsyty',period)
-      handleDownload();
-      loadAtt(period);
-    }
-  };
-  
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -139,7 +129,7 @@ export function Marker() {
     <section className="flex flex-col">
       <div className="w-full max-w-7xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6 flex flex-col">
         <div className="flex justify-between items-center">
-          <Typography variant="h2" className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl" onClick={reload}>
+          <Typography variant="h2" className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl">
             Brototype
           </Typography>
           <Button 

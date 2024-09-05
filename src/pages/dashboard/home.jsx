@@ -142,13 +142,13 @@ export function Home() {
            
               
               </Typography>
-<DatePicker
+{/* <DatePicker
           selected={date}
           onChange={handleDateChange}
           dateFormat="yyyy-MM-dd"
           className="form-control px-3 py-2 border border-blue-gray-300 rounded-md"
           wrapperClassName=""
-        />
+        /> */}
 </div><Typography className="font-bold text-dark-600 mt-3 text-center">
                 <strong>Active Locations</strong>
               
