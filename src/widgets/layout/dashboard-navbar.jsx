@@ -11,6 +11,11 @@ import {
   MenuList,
   MenuItem,
   Avatar,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  Select,
+  DialogFooter,
 } from "@material-tailwind/react";
 import {
   UserCircleIcon,
@@ -39,6 +44,7 @@ export function DashboardNavbar() {
   const navigate = useNavigate();
   const { pathname, searchTerm } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
+
 
   const handleSearch = (event) => {
     setSearchTerm(dispatch, event.target.value);
@@ -88,7 +94,13 @@ export function DashboardNavbar() {
               </IconButton>
             </MenuHandler>
           </Menu>
-           : page === 'add' ? '' : page === 'edit' ? '' : page === 'home' ? '' : page  === 'delivery' ? 
+           : page === 'add' ? '' : page === 'edit' ? '' : page === 'home' ?  <Menu>
+           <MenuHandler>
+             <IconButton variant="text" color="blue-gray">
+               <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" />
+             </IconButton>
+           </MenuHandler>
+         </Menu> : page  === 'delivery' ? 
            <Menu>
             <MenuHandler>
               <IconButton variant="text" color="blue-gray">
@@ -109,6 +121,39 @@ export function DashboardNavbar() {
           </IconButton>
         </div>
       </div>
+      <Dialog open={false} handler={false} size="sm">
+          <DialogHeader>Add New Point</DialogHeader>
+          <DialogBody className="flex flex-col gap-4">
+    <Input
+      label="Place"
+      name="place"
+     
+    />
+    <Select
+      label="Mode"
+     
+    >
+      <Option value="single">Single</Option>
+      <Option value="cluster">Cluster</Option>
+    </Select>
+  </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="text"
+              color="red"
+              
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="filled"
+              color="green"
+           
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </Dialog>
     </Navbar>
   );
 }
