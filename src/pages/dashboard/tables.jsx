@@ -57,11 +57,11 @@ export function Tables() {
 
   const handleSendInvoice = () => {
     const invoiceAmount = `${bill}` - totalLeave * `${reduce}`;
-    const message = `
-    ${selectedUser.name} Your Food bill till today,
+    const message = 
+   `${selectedUser.name} Your Food bill till today,
     total leave = ${totalLeave}, 
     total = ${bill} - ${totalLeave} x ${reduce} = ${invoiceAmount},
-     you have to pay = ₹${invoiceAmount} 👍`;
+    you have to pay = ₹${invoiceAmount} 👍`;
     const whatsappUrl = `https://wa.me/91${selectedUser.phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
