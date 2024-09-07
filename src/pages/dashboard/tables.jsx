@@ -91,15 +91,22 @@ export function Tables() {
   };
 
   const handleSendInvoice = () => {
-    const invoiceAmount = `${bill}` - totalLeave * `${reduce}`;
-    const message = 
-   `${selectedUser.name} Your Food bill till ${selectedUser.latestOrder?.orderEnd},
-    total leave = ${totalLeave}, 
-    total = ${bill} - ${totalLeave} x ${reduce} = ${invoiceAmount},
-    you have to pay = ₹${invoiceAmount} 👍`;
+    const orderEndDate = selectedUser.latestOrder?.orderEnd.split('T')[0]; // Extract only the date
+    const invoiceAmount = bill - totalLeave * reduce; // Calculate invoice amount
+    const message = `
+  ${selectedUser.name}, your food bill till ${orderEndDate} is as follows:
+  
+  Total leaves: ${totalLeave}
+  Total amount: ₹${bill} 
+  Leave deduction: ${totalLeave} x ₹${reduce} = ₹${totalLeave * reduce}
+  ------------------------------------
+  Amount to pay: ₹${invoiceAmount} 👍
+    `;
+    
     const whatsappUrl = `https://wa.me/91${selectedUser.phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
+  
   
   useEffect(() => {
     // Fetch users from API
