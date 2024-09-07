@@ -97,7 +97,7 @@ export function DashboardNavbar() {
            : page === 'add' ? '' : page === 'edit' ? '' : page === 'home' ?  <Menu>
            <MenuHandler>
              <IconButton variant="text" color="blue-gray">
-               <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" />
+               <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" onClick={() => navigate('add')}/>
              </IconButton>
            </MenuHandler>
          </Menu> : page  === 'delivery' ? 

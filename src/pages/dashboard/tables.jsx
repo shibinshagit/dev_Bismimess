@@ -188,6 +188,7 @@ export function Tables() {
               {[
                 "Name",
                 "Location",
+                "view",
                 <Menu key="menu">
                   <MenuHandler>
                     <span>Status</span>
@@ -269,6 +270,35 @@ export function Tables() {
               </div>
             </div>
           </td>
+          <td className={className}>
+  <div className="flex items-center gap-4">
+    <div>
+      {/* <Typography>
+        {user.location && typeof user.location === 'object' ? (
+          <>
+            {user.location.longitude ? `Longitude: ${user.location.longitude}` : 'Longitude not available'}
+            {user.location.latitude ? ` | Latitude: ${user.location.latitude}` : ' | Latitude not available'}
+          </>
+        ) : (
+          'Location not available'
+        )}
+      </Typography> */}
+
+      {user.location && typeof user.location === 'object' && user.location.longitude && user.location.latitude && (
+        <a
+          href={`https://www.google.com/maps/dir/?api=1&destination=${user.location.latitude},${user.location.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-2"
+        >
+          {/* <img src='https://cdn-icons-png.flaticon.com/512/2875/2875433.png' alt="Google Maps" className="w-4 h-4" /> */}
+          <Typography>View</Typography>
+        </a>
+      )}
+    </div>
+  </div>
+</td>
+
 
           <td className={className}>
             <Chip
