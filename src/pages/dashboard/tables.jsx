@@ -39,11 +39,11 @@ export function Tables() {
         break;
       case 2:
         setBill(2750);
-        setReduce(80);
+        setReduce(70);
         break;
       default:
         setBill(1500);
-        setReduce(40);
+        setReduce(0);
     }
 
     setOpen(true);
@@ -57,7 +57,11 @@ export function Tables() {
 
   const handleSendInvoice = () => {
     const invoiceAmount = `${bill}` - totalLeave * `${reduce}`;
-    const message = `${selectedUser.name}Your Food bill till today, total leave = ${totalLeave}, total = ${bill} - ${totalLeave} x ${reduce} ${invoiceAmount} you have to pay ${invoiceAmount} 👍`;
+    const message = `
+    ${selectedUser.name} Your Food bill till today,
+    total leave = ${totalLeave}, 
+    total = ${bill} - ${totalLeave} x ${reduce} = ${invoiceAmount},
+     you have to pay = ₹${invoiceAmount} 👍`;
     const whatsappUrl = `https://wa.me/91${selectedUser.phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
