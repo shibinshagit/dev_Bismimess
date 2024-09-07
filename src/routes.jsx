@@ -56,6 +56,12 @@ export const routes = [
         element: <Tables />,
       },
       {
+        icon: <UserGroupIcon {...icon} />,
+        name: "users",
+        path: "/viewdelivery/:id",
+        element: <Tables />,
+      },
+      {
         icon: <UserCircleIcon {...icon} />,
         name: "update",
         path: "/edit",

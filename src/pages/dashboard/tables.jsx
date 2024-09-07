@@ -8,8 +8,41 @@ import * as XLSX from 'xlsx';
 import { Download } from 'lucide-react';
 import { BaseUrl } from '@/constants/BaseUrl';
 import dayjs from 'dayjs';
+// location fetching temporary=============================================
+const handleAddLocation = (userId) => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const response = await axios.put(`${BaseUrl}/api/user/${userId}`, {
+            latitude,
+            longitude,
+          });
+
+          if (response.status === 200) {
+            alert("Location updated successfully!");
+          } else {
+            alert("Failed to update location.");
+          }
+        } catch (error) {
+          console.error("Error updating location:", error);
+          alert("An error occurred while updating the location.");
+        }
+      },
+      (error) => {
+        alert("Error getting location: " + error.message);
+      }
+    );
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+};
 
 
+
+// ====================================================================
 
 export function Tables() {
   const { id } = useParams();
@@ -154,6 +187,7 @@ export function Tables() {
             <tr>
               {[
                 "Name",
+                "Location",
                 <Menu key="menu">
                   <MenuHandler>
                     <span>Status</span>
@@ -211,6 +245,27 @@ export function Tables() {
                 <Typography className="text-xs font-normal text-blue-gray-500">
                   {user.phone}
                 </Typography>
+              </div>
+            </div>
+          </td>
+          <td className={className}>
+            <div className="flex items-center gap-4">
+          
+              <div>
+              <Typography variant="small" color="blue-gray" className="font-semibold" onClick={() => handleAddLocation(user._id)}>
+  {user.location && typeof user.location === 'object' ? (
+    <>
+      {user.location.longitude ? `y: ${user.location.longitude}` : 'Longitude not available'}
+      {user.location.latitude ? `X: ${user.location.latitude}` : 'Latitude not available'}
+    </>
+  ) : (
+    'Location not available'
+  )}
+  <img src='https://cdn-icons-png.flaticon.com/512/2875/2875433.png' alt="Google Maps" className="w-4 h-4" />
+</Typography>
+
+
+               
               </div>
             </div>
           </td>

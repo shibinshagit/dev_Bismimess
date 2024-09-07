@@ -21,7 +21,7 @@ const pointsData = [
 ];
 
 export default function Points() {
-  const [currentPosition, setCurrentPosition] = useState(null);
+  const [currentPosition, setCurrentPosition] = useState(null); 
   const [showUsers, setShowUsers] = useState(null);
 
   const handlePointClick = (index) => {
