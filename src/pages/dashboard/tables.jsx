@@ -69,12 +69,6 @@ export function Tables() {
   };
   
   useEffect(() => {
-    // If id is empty, navigate to another page
-    if (!id) {
-      navigate('/home'); 
-      return;
-    }
-
     // Fetch users from API
     const fetchUsers = async () => {
       try {
@@ -86,9 +80,10 @@ export function Tables() {
         setLoading(false);
       }
     };
-
+  
     fetchUsers();
-  }, [id, navigate]); 
+  }, [id]);  // Make sure to include `id` as a dependency if it's changing
+  
   const handleUpdate = (user) => {
     navigate(`/dashboard/edit`, { state: { user } });
   };
