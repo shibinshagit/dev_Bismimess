@@ -91,7 +91,9 @@ export function Tables() {
   };
 
   const handleSendInvoice = () => {
-    const orderEndDate = selectedUser.latestOrder?.orderEnd.split('T')[0]; // Extract only the date
+    const orderEnd = new Date(selectedUser.latestOrder?.orderEnd);
+    const orderEndDate = `${orderEnd.getDate().toString().padStart(2, '0')}-${(orderEnd.getMonth() + 1).toString().padStart(2, '0')}-${orderEnd.getFullYear()}`;
+    
     const invoiceAmount = bill - totalLeave * reduce; // Calculate invoice amount
     const message = `
   ${selectedUser.name}, your food bill till ${orderEndDate} is as follows:
@@ -195,7 +197,7 @@ export function Tables() {
               {[
                 "Name",
                 "Location",
-                "view",
+                // "view",
                 <Menu key="menu">
                   <MenuHandler>
                     <span>Status</span>
@@ -256,7 +258,7 @@ export function Tables() {
               </div>
             </div>
           </td>
-          <td className={className}>
+          {/* <td className={className}>
             <div className="flex items-center gap-4">
           
               <div>
@@ -276,7 +278,7 @@ export function Tables() {
                
               </div>
             </div>
-          </td>
+          </td> */}
           <td className={className}>
   <div className="flex items-center gap-4">
     <div>
@@ -298,7 +300,7 @@ export function Tables() {
           rel="noopener noreferrer"
           className="flex items-center space-x-2"
         >
-          {/* <img src='https://cdn-icons-png.flaticon.com/512/2875/2875433.png' alt="Google Maps" className="w-4 h-4" /> */}
+          <img src='https://cdn-icons-png.flaticon.com/512/2875/2875433.png' alt="Google Maps" className="w-4 h-4" />
           <Typography>View</Typography>
         </a>
       )}
@@ -356,14 +358,15 @@ export function Tables() {
           </td>
 
           <td className={className}>
-            {new Date(latestOrder.orderEnd).getTime() - new Date().getTime() < 0 * 24 * 60 * 60 * 1000 && (
-              <button
-                className="text-xs font-semibold text-blue-600"
-                onClick={() => handleInvoiceDialog(user)}
-              >
-                Share Invoice
-              </button>
-            )}
+          {new Date(latestOrder.orderEnd).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000 && (
+  <button
+    className="text-xs font-semibold text-blue-600"
+    onClick={() => handleInvoiceDialog(user)}
+  >
+    Share Invoice
+  </button>
+)}
+
           </td>
         </tr>
       );
