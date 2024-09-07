@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMaterialTailwindController } from '@/context/index';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardBody, Typography, Avatar, Chip, Menu, MenuHandler, MenuList, MenuItem, select} from "@material-tailwind/react";
 import { Dialog, DialogHeader, DialogBody, DialogFooter, Input, Button } from "@material-tailwind/react";
 import axios from 'axios';  // Import axios for making API calls
@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 
 
 export function Tables() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [controller] = useMaterialTailwindController();
   const { searchTerm } = controller;
@@ -19,6 +20,7 @@ export function Tables() {
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
 
 
   const [open, setOpen] = useState(false);
@@ -66,12 +68,11 @@ export function Tables() {
     window.open(whatsappUrl, '_blank');
   };
   
-
   useEffect(() => {
     // Fetch users from API
     const fetchUsers = async () => {
       try {
-        const response = await axios.get(`${BaseUrl}/api/users`);
+        const response = await axios.get(`${BaseUrl}/api/users/${id}`);
         setUsers(response.data);
       } catch (err) {
         setError('Error fetching users.');
@@ -79,10 +80,10 @@ export function Tables() {
         setLoading(false);
       }
     };
-
+  
     fetchUsers();
-  }, []);
-
+  }, [id]);  // Make sure to include `id` as a dependency if it's changing
+  
   const handleUpdate = (user) => {
     navigate(`/dashboard/edit`, { state: { user } });
   };

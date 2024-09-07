@@ -33,12 +33,6 @@ export const routes = [
         name: "dash",
         path: "/home",
         element: <Home />,
-      },
-      {
-        icon: <UserGroupIcon {...icon} />,
-        name: "users",
-        path: "/tables",
-        element: <Tables />,
       },{
         icon: <TruckIcon {...icon} />,
         name: "Supply",
@@ -54,6 +48,12 @@ export const routes = [
         name: "add",
         path: "/add",
         element: <Add />,
+      },
+      {
+        icon: <UserGroupIcon {...icon} />,
+        name: "users",
+        path: "/tables/:id",
+        element: <Tables />,
       },
       {
         icon: <UserCircleIcon {...icon} />,

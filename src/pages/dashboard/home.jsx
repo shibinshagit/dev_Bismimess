@@ -55,7 +55,7 @@ export function Home() {
 
   const fetchPoints = async () => {
     try {
-      const response = await axios.get(`${BaseUrl}/api/points`); // Adjust the endpoint accordingly
+      const response = await axios.get(`${BaseUrl}/api/points`); 
       setPoints(response.data);
     } catch (error) {
       console.error("Error fetching points:", error);
@@ -155,26 +155,19 @@ export function Home() {
               </Typography>
 
 <div className="mt-6 mb-16">
-        {points.map(({ place, mode }) => (
-          <Card key={place} className="mb-4 shadow-md">
-            <Menu>
-              <MenuHandler>
+        {points.map(({ _id, place, mode }) => (
+          <Card
+          key={_id} // Use _id as the key for uniqueness
+          className="mb-4 shadow-md"
+          onClick={() => navigate(`/dashboard/tables/${_id}`)} // Pass the id in the URL
+        >  
                 <div className="flex items-center justify-between p-4 cursor-pointer">
                   <Typography variant="h6" color="blue-gray">
                     {place} ({mode === "cluster" ? "Cluster" : "Single"})
                   </Typography>
-                  <ChevronDownIcon className="w-5 h-5 text-blue-gray-600" />
+                  {/* <ChevronDownIcon className="w-5 h-5 text-blue-gray-600" /> */}
                 </div>
-              </MenuHandler>
-              <MenuList className="p-4">
-                <MenuItem>
-                  <Typography variant="small" className="font-medium">
-                    Mode: {mode}
-                  </Typography>
-                </MenuItem>
-                {/* Add more MenuItems if there's additional data to show */}
-              </MenuList>
-            </Menu>
+          
           </Card>
         ))}
       </div>
