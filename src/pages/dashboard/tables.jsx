@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useMaterialTailwindController } from '@/context/index';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardBody, Typography, Avatar, Chip, Menu, MenuHandler, MenuList, MenuItem, Button } from "@material-tailwind/react";
+import { Card, CardBody, Typography, Avatar, Chip, Menu, MenuHandler, MenuList, MenuItem, select} from "@material-tailwind/react";
+import { Dialog, DialogHeader, DialogBody, DialogFooter, Input, Button } from "@material-tailwind/react";
 import axios from 'axios';  // Import axios for making API calls
 import * as XLSX from 'xlsx';
 import { Download } from 'lucide-react';
 import { BaseUrl } from '@/constants/BaseUrl';
 import dayjs from 'dayjs';
+
 
 
 export function Tables() {
@@ -17,6 +19,49 @@ export function Tables() {
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+
+  const [open, setOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [totalLeave, setTotalLeave] = useState(0);
+  const [reduce, setReduce] = useState(0);
+  const [bill, setBill] = useState(0);
+
+  const handleInvoiceDialog = (user) => {
+    setSelectedUser(user);
+
+    const planLength = user?.latestOrder?.plan?.length;
+
+    switch (planLength) {
+      case 3:
+        setBill(3200);
+        setReduce(100);
+        break;
+      case 2:
+        setBill(2750);
+        setReduce(80);
+        break;
+      default:
+        setBill(1500);
+        setReduce(40);
+    }
+
+    setOpen(true);
+};
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedUser(null);
+    setTotalLeave(0); // Reset leave input
+  };
+
+  const handleSendInvoice = () => {
+    const invoiceAmount = `${bill}` - totalLeave * `${reduce}`;
+    const message = `${selectedUser.name}Your Food bill till today, total leave = ${totalLeave}, total = ${bill} - ${totalLeave} x ${reduce} ${invoiceAmount} you have to pay ${invoiceAmount} 👍`;
+    const whatsappUrl = `https://wa.me/91${selectedUser.phone}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+  
 
   useEffect(() => {
     // Fetch users from API
@@ -64,16 +109,29 @@ export function Tables() {
     setFilter(selectedFilter);
   };
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users
+  .filter(user => {
     if (filter === 'All') {
       return true;
     } else {
       return user.latestOrder && user.latestOrder.status.toLowerCase() === filter.toLowerCase();
     }
-  }).filter(user =>
+  })
+  .filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.phone.includes(searchTerm) 
-  );
+    user.phone.includes(searchTerm)
+  )
+  .sort((a, b) => {
+    // Handle cases where latestOrder is undefined
+    const dateA = a.latestOrder ? new Date(a.latestOrder.orderEnd) : new Date();
+    const dateB = b.latestOrder ? new Date(b.latestOrder.orderEnd) : new Date();
+    return dateA - dateB;
+  });
+
+  
+  const filteredUserss = users
+    .filter(user => user.latestOrder?.orderEnd)
+    .sort((a, b) => new Date(a.latestOrder.orderEnd) - new Date(b.latestOrder.orderEnd));
 
   if (loading) {
     return <p>Loading...</p>;
@@ -99,7 +157,7 @@ export function Tables() {
                     <MenuItem onClick={() => handleFilterChange('All')}>All</MenuItem>
                     <MenuItem onClick={() => handleFilterChange('Active')}>Active</MenuItem>
                     <MenuItem onClick={() => handleFilterChange('Leave')}>Leave</MenuItem>
-                    <MenuItem onClick={() => handleFilterChange('Renew')}>Renew</MenuItem>
+                    <MenuItem onClick={() => handleFilterChange('Expired')}>Expired</MenuItem>
                     <MenuItem onClick={() => handleFilterChange('Soon')}>Soon</MenuItem>
                   </MenuList>
                 </Menu>,
@@ -120,7 +178,7 @@ export function Tables() {
           <tbody>
   {filteredUsers.length === 0 ? (
     <tr>
-      <td colSpan="3" className="text-center py-4">
+      <td colSpan="" className="text-center py-4">
         No users found.
       </td>
     </tr>
@@ -172,27 +230,43 @@ export function Tables() {
               className="py-0.5 px-2 text-[11px] font-medium w-fit"
             />
           </td>
-          <td className={className}>
-          <Typography className="text-xs font-semibold text-blue-gray-600 flex gap-1">
-  {user.latestOrder?.plan?.length ? (
-    user.latestOrder.plan.map((item, index) => (
-      <div key={index} className=''>{item}</div>
-    ))
-  ) : (
-    <div>---</div>
-  )}
-</Typography>
 
-</td>
+          <td className={className}>
+            <Typography className="text-xs font-semibold text-blue-gray-600 flex gap-1">
+              {user.latestOrder?.plan?.length ? (
+                user.latestOrder.plan.map((item, index) => (
+                  <div key={index} className="">{item}</div>
+                ))
+              ) : (
+                <div>---</div>
+              )}
+            </Typography>
+          </td>
+
           <td className={className}>
             <Typography className="text-xs font-semibold text-blue-gray-600">
               {formattedDate || '---'}
             </Typography>
           </td>
+
+          {/* Share Invoice Button */}
+         
+
           <td className={className}>
             <Typography as="a" className="text-xs font-semibold text-blue-gray-600" onClick={() => handleUpdate(user)}>
               Edit
             </Typography>
+          </td>
+
+          <td className={className}>
+            {new Date(latestOrder.orderEnd).getTime() - new Date().getTime() < 0 * 24 * 60 * 60 * 1000 && (
+              <button
+                className="text-xs font-semibold text-blue-600"
+                onClick={() => handleInvoiceDialog(user)}
+              >
+                Share Invoice
+              </button>
+            )}
           </td>
         </tr>
       );
@@ -201,6 +275,35 @@ export function Tables() {
 </tbody>
 
         </table>
+
+
+        <Dialog open={open} handler={handleClose}>
+  <DialogHeader>Send Invoice</DialogHeader>
+  <DialogBody>
+    <Typography variant="h6" className="mb-3"> {selectedUser?.name} </Typography>
+      <Input
+        type="number"
+        value={totalLeave}
+        onChange={(e) => setTotalLeave(Number(e.target.value))}
+        label='Total Leave'
+       
+      />
+   
+    <Typography variant="h6" className="mt-2">
+      Bill Amount = {bill - totalLeave * reduce}
+    </Typography>
+  </DialogBody>
+  <DialogFooter>
+    <Button variant="text" color="red" onClick={handleClose} className="mr-2">
+      Cancel
+    </Button>
+    <Button variant="gradient" color="dark" onClick={handleSendInvoice}>
+      Send 
+    </Button>
+  </DialogFooter>
+</Dialog>
+
+
       </CardBody>
     </div>
   );
