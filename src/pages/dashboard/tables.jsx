@@ -93,7 +93,7 @@ export function Tables() {
   const handleSendInvoice = () => {
     const invoiceAmount = `${bill}` - totalLeave * `${reduce}`;
     const message = 
-   `${selectedUser.name} Your Food bill till today,
+   `${selectedUser.name} Your Food bill till ${selectedUser.latestOrder?.orderEnd},
     total leave = ${totalLeave}, 
     total = ${bill} - ${totalLeave} x ${reduce} = ${invoiceAmount},
     you have to pay = ₹${invoiceAmount} 👍`;
