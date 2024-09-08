@@ -23,7 +23,7 @@ export function Marker() {
   const searchInputRef = useRef(null);
 
   const fetchAttendanceList = (zone) => {
-    return axios.get(`${BaseUrl}/api/users`)
+    return axios.get(`${BaseUrl}/api/users/66c26676b43a45070b24e735`)
       .then(response => response.data)
       .catch(error => {
         console.error('Error fetching attendance:', error);
@@ -49,6 +49,12 @@ export function Marker() {
 
       if (newPeriod !== reduxPeriod) {
         loadAtt(newPeriod);
+      }
+
+
+      if(usersFromRedux.length === 0){
+        console.log('hello')
+        loadAtt(newPeriod)
       }
     };
 
@@ -179,6 +185,7 @@ export function Marker() {
             <thead className="sticky top-[140px] bg-gray-100 z-10">
               <tr className="text-left bg-gray-100 border-b">
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">Name</th>
+                <th className="px-4 py-2 text-blue-gray-700 font-semibold">status</th>
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">Phone</th>
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">
                   <Clock className="inline h-5 w-5" /> {period}
@@ -195,10 +202,11 @@ export function Marker() {
                   <tr
                     key={user.phone}
                     className={`border-t transition duration-300 ease-in-out hover:bg-gray-100 ${
-                      isPresent ? 'bg-green-50' : 'bg-red-50'
+                      isPresent ? 'bg-green-50' : 'bg-white-50'
                     }`}
                   >
                     <td className="px-4 py-2 text-blue-gray-900 font-medium">{user.name}</td>
+                    <td className="px-4 py-2 text-blue-gray-900 font-medium">{user.status}</td>
                     <td className="px-4 py-2 text-blue-gray-900 font-medium">{user.phone}</td>
                     <td className="px-4 py-2 text-center">
                       <Button
