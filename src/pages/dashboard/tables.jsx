@@ -10,6 +10,10 @@ import { BaseUrl } from '@/constants/BaseUrl';
 import dayjs from 'dayjs';
 // location fetching temporary=============================================
 const handleAddLocation = (userId) => {
+  if (!window.confirm("Do you want to update your location?")) {
+    return;
+  }
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -23,6 +27,7 @@ const handleAddLocation = (userId) => {
 
           if (response.status === 200) {
             alert("Location updated successfully!");
+            window.location.reload(); // Reloads the page
           } else {
             alert("Failed to update location.");
           }
@@ -39,6 +44,7 @@ const handleAddLocation = (userId) => {
     alert("Geolocation is not supported by this browser.");
   }
 };
+
 
 
 
@@ -197,7 +203,7 @@ export function Tables() {
               {[
                 "Name",
                 "Location",
-                // "view",
+                "view",
                 <Menu key="menu">
                   <MenuHandler>
                     <span>Status</span>
@@ -258,7 +264,7 @@ export function Tables() {
               </div>
             </div>
           </td>
-          {/* <td className={className}>
+          <td className={className}>
             <div className="flex items-center gap-4">
           
               <div>
@@ -278,7 +284,7 @@ export function Tables() {
                
               </div>
             </div>
-          </td> */}
+          </td>
           <td className={className}>
   <div className="flex items-center gap-4">
     <div>
