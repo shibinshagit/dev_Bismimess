@@ -4,7 +4,6 @@ import {
   Input,
   Button,
   Typography,
-  Collapse,
 } from "@material-tailwind/react";
 import { CheckBadgeIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Clock, Download } from 'lucide-react';
@@ -25,7 +24,7 @@ export function Marker() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleDropdown = () => setIsOpen(!isOpen);
+  // const toggleDropdown = () => setIsOpen(!isOpen);
 
 
   const fetchAttendanceList = (zone) => {
@@ -211,18 +210,18 @@ export function Marker() {
                       isPresent ? 'bg-green-50' : 'bg-white-50'
                     }`}
                   >
-                    <td
+                  <td
         className="px-4 py-2 text-blue-gray-900 font-medium cursor-pointer"
-        onClick={toggleDropdown}
+        onClick={() => setIsOpen(!isOpen)}
       >
         {user.name}
-        {/* Dropdown inside the name <td> */}
-        <Collapse open={isOpen}>
+        {/* Conditionally render content instantly */}
+        {isOpen && (
           <div className="mt-2 text-sm text-blue-gray-700 space-y-1">
             <div>Status: {user.status}</div>
             <div>Phone: {user.phone}</div>
           </div>
-        </Collapse>
+        )}
       </td>
                     <td className="px-4 py-2 text-center">
                       <Button
