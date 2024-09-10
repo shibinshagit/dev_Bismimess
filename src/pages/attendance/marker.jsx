@@ -202,12 +202,16 @@ export function Marker() {
                 const isPresent = user.attendance === 'present';
                 const buttonLabel = isPresent ? 'Present' : 'Absent';
                 const buttonColor = isPresent ? 'green' : 'red';
+                const statusColor = user.status === 'expired' ? 'black' 
+                : user.status === 'leave' ? 'yellow' 
+                : buttonColor; // Default to buttonColor based on isPresent
+
 
                 return (
                   <tr
                     key={user.phone}
                     className={`border-t transition duration-300 ease-in-out hover:bg-gray-100 ${
-                      isPresent ? 'bg-green-50' : 'bg-white-50'
+                      isPresent ? 'bg-green-100' : 'bg-white-50'
                     }`}
                   >
                   <td
@@ -225,7 +229,7 @@ export function Marker() {
       </td>
                     <td className="px-4 py-2 text-center">
                       <Button
-                        color={buttonColor}
+                        color={statusColor}
                         size="sm"
                         onClick={() => handleAttendanceClick(user)}
                         className="flex items-center justify-center space-x-1 rounded-lg shadow-sm"
