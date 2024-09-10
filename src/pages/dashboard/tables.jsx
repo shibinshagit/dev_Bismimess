@@ -5,7 +5,7 @@ import { Card, CardBody, Typography, Avatar, Chip, Menu, MenuHandler, MenuList, 
 import { Dialog, DialogHeader, DialogBody, DialogFooter, Input, Button } from "@material-tailwind/react";
 import axios from 'axios';  // Import axios for making API calls
 import * as XLSX from 'xlsx';
-import { Download } from 'lucide-react';
+import { Download, PlusCircleIcon } from 'lucide-react';
 import { BaseUrl } from '@/constants/BaseUrl';
 import dayjs from 'dayjs';
 // location fetching temporary=============================================
@@ -203,7 +203,7 @@ export function Tables() {
               {[
                 "Name",
                 "Location",
-                "view",
+               
                 <Menu key="menu">
                   <MenuHandler>
                     <span>Status</span>
@@ -218,6 +218,7 @@ export function Tables() {
                 </Menu>,
                  "Plan",
                 "Expire",
+                "Edit",
                  <Typography as="a" className="text-xs font-semibold text-red-600 flex" onClick={() => printData(filteredUsers)}>
                   <Download/>{filteredUsers.length}
               </Typography>,
@@ -268,38 +269,9 @@ export function Tables() {
             <div className="flex items-center gap-4">
           
               <div>
-              <Typography variant="small" color="blue-gray" className="font-semibold" onClick={() => handleAddLocation(user._id)}>
+              <Typography variant="small" color="blue-gray" className="font-semibold">
   {user.location && typeof user.location === 'object' ? (
     <>
-      {user.location.longitude ? `y: ${user.location.longitude}` : 'Longitude not available'}
-      {user.location.latitude ? `X: ${user.location.latitude}` : 'Latitude not available'}
-    </>
-  ) : (
-    'Location not available'
-  )}
-  <img src='https://cdn-icons-png.flaticon.com/512/2875/2875433.png' alt="Google Maps" className="w-4 h-4" />
-</Typography>
-
-
-               
-              </div>
-            </div>
-          </td>
-          <td className={className}>
-  <div className="flex items-center gap-4">
-    <div>
-      {/* <Typography>
-        {user.location && typeof user.location === 'object' ? (
-          <>
-            {user.location.longitude ? `Longitude: ${user.location.longitude}` : 'Longitude not available'}
-            {user.location.latitude ? ` | Latitude: ${user.location.latitude}` : ' | Latitude not available'}
-          </>
-        ) : (
-          'Location not available'
-        )}
-      </Typography> */}
-
-      {user.location && typeof user.location === 'object' && user.location.longitude && user.location.latitude && (
         <a
           href={`https://www.google.com/maps/dir/?api=1&destination=${user.location.latitude},${user.location.longitude}`}
           target="_blank"
@@ -309,10 +281,19 @@ export function Tables() {
           <img src='https://cdn-icons-png.flaticon.com/512/2875/2875433.png' alt="Google Maps" className="w-4 h-4" />
           <Typography>View</Typography>
         </a>
-      )}
-    </div>
-  </div>
-</td>
+    </>
+  ) : (
+   <PlusCircleIcon  onClick={() => handleAddLocation(user._id)}/>
+  )}
+  {/* <img src='https://cdn-icons-png.flaticon.com/512/2875/2875433.png' alt="Google Maps" className="w-4 h-4" /> */}
+</Typography>
+
+
+               
+              </div>
+            </div>
+          </td>
+        
 
 
           <td className={className}>

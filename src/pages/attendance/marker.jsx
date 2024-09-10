@@ -4,6 +4,7 @@ import {
   Input,
   Button,
   Typography,
+  Collapse,
 } from "@material-tailwind/react";
 import { CheckBadgeIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Clock, Download } from 'lucide-react';
@@ -21,6 +22,11 @@ export function Marker() {
   const reduxPeriod = useSelector((state) => state.auth.period);
   const zone = 'Brototype';
   const searchInputRef = useRef(null);
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleDropdown = () => setIsOpen(!isOpen);
+
 
   const fetchAttendanceList = (zone) => {
     return axios.get(`${BaseUrl}/api/users/66c26676b43a45070b24e735`)
@@ -185,8 +191,8 @@ export function Marker() {
             <thead className="sticky top-[140px] bg-gray-100 z-10">
               <tr className="text-left bg-gray-100 border-b">
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">Name</th>
-                <th className="px-4 py-2 text-blue-gray-700 font-semibold">status</th>
-                <th className="px-4 py-2 text-blue-gray-700 font-semibold">Phone</th>
+                {/* <th className="px-4 py-2 text-blue-gray-700 font-semibold">status</th> */}
+                {/* <th className="px-4 py-2 text-blue-gray-700 font-semibold">Phone</th> */}
                 <th className="px-4 py-2 text-blue-gray-700 font-semibold">
                   <Clock className="inline h-5 w-5" /> {period}
                 </th>
@@ -205,9 +211,19 @@ export function Marker() {
                       isPresent ? 'bg-green-50' : 'bg-white-50'
                     }`}
                   >
-                    <td className="px-4 py-2 text-blue-gray-900 font-medium">{user.name}</td>
-                    <td className="px-4 py-2 text-blue-gray-900 font-medium">{user.status}</td>
-                    <td className="px-4 py-2 text-blue-gray-900 font-medium">{user.phone}</td>
+                    <td
+        className="px-4 py-2 text-blue-gray-900 font-medium cursor-pointer"
+        onClick={toggleDropdown}
+      >
+        {user.name}
+        {/* Dropdown inside the name <td> */}
+        <Collapse open={isOpen}>
+          <div className="mt-2 text-sm text-blue-gray-700 space-y-1">
+            <div>Status: {user.status}</div>
+            <div>Phone: {user.phone}</div>
+          </div>
+        </Collapse>
+      </td>
                     <td className="px-4 py-2 text-center">
                       <Button
                         color={buttonColor}
