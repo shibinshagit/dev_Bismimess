@@ -66,6 +66,7 @@ export function UpcomingDelivery() {
     const fetchData = async () => {
       await fetchPoints();
       await fetchDeliveryBoys();
+      console.log(deliveryBoys)
     };
     fetchData();
   }, [fetchPoints, fetchDeliveryBoys]);
@@ -319,6 +320,8 @@ export function UpcomingDelivery() {
                     Phone: {boy.phone}
                     <br />
                     Code: {boy.code}
+                    <br/>
+                    {/* points:{boy.points } */}
                   </Typography>
                 </Collapse>
               </div>

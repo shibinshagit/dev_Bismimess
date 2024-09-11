@@ -249,12 +249,14 @@ export function Tables() {
         <tr key={user._id} className="even:bg-blue-gray-50/50">
           <td className={className}>
             <div className="flex items-center gap-4">
+            <a href={`https://wa.me/91${user.phone}`} target="_blank" rel="noopener noreferrer">
               <Avatar
                 src="https://static.vecteezy.com/system/resources/previews/026/530/210/original/modern-person-icon-user-and-anonymous-icon-vector.jpg"
                 alt={user.name}
                 size="sm"
                 variant="rounded"
-              />
+              /></a>
+              
               <div>
                 <Typography variant="small" color="blue-gray" className="font-semibold">
                   {user.name}
