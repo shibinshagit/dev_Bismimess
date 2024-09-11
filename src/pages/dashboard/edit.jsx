@@ -166,7 +166,8 @@ function Edit() {
         if (response.status === 200) {
           dispatch(fetchCustomers());
           alert('User updated successfully');
-        } 
+          window.history.back(); // This will take the user to the previous page
+        }        
         else if (response.status === 204) {
           alert('Fill all order data');
         }  
@@ -300,11 +301,12 @@ function Edit() {
               />
             </div>
             <div className="mb-4">
+              {/* change to points */}
               <Input
                 type="text"
                 name="place"
                 label="Place"
-                value={formData.place}
+                value={"Brototype"}
                 onChange={handleChange}
                 required
                 disabled={!isEditing}
