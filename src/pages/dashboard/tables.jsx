@@ -7,6 +7,7 @@ import axios from 'axios';  // Import axios for making API calls
 import * as XLSX from 'xlsx';
 import { Download, PlusCircleIcon } from 'lucide-react';
 import { BaseUrl } from '@/constants/BaseUrl';
+import UserAvatar from '../../../public/img/user.jpg';
 import dayjs from 'dayjs';
 // location fetching temporary=============================================
 const handleAddLocation = (userId) => {
@@ -233,11 +234,9 @@ export function Tables() {
           </thead>
           <tbody>
   {filteredUsers.length === 0 ? (
-    <tr>
-      <td colSpan="" className="text-center py-4">
-        No users found.
-      </td>
-    </tr>
+
+  <>No users found.</>
+     
   ) : (
     filteredUsers.map((user, key) => {
       const className = `py-3 px-5 ${key === users.length - 1 ? "" : "border-b border-blue-gray-50"}`;
@@ -249,13 +248,14 @@ export function Tables() {
         <tr key={user._id} className="even:bg-blue-gray-50/50">
           <td className={className}>
             <div className="flex items-center gap-4">
-            <a href={`https://wa.me/91${user.phone}`} target="_blank" rel="noopener noreferrer">
+            
               <Avatar
-                src="https://static.vecteezy.com/system/resources/previews/026/530/210/original/modern-person-icon-user-and-anonymous-icon-vector.jpg"
-                alt={user.name}
-                size="sm"
-                variant="rounded"
-              /></a>
+  src={UserAvatar}
+  alt={user.name}
+  size="sm"
+  variant="rounded"
+  onClick={() => window.open(`https://wa.me/91${user.phone}`, '_blank')}
+/>
               
               <div>
                 <Typography variant="small" color="blue-gray" className="font-semibold">

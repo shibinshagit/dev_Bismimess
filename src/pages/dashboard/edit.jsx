@@ -12,11 +12,18 @@ import {
   Button,
   Checkbox,
   List,
-  ListItem
+  ListItem,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+  Option,
+  Select
 } from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
 import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { PlusIcon } from 'lucide-react';
 
 function Edit() {
   const location = useLocation();
@@ -25,31 +32,21 @@ function Edit() {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showLeaveSection, setShowLeaveSection] = useState(false);
+
+  const [pointsList, setPointsList] = useState([]);
+  const [openPointModal, setOpenPointModal] = useState(false);
+  const [newPoint, setNewPoint] = useState({ place: '', mode: 'single' });
+  const [modalHeader, setModalHeader] = useState('Add New Point');
+  const [pointInputValue, setPointInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestedPlaces = ['Brototype', 'Vytila', 'Infopark'];
+  const [filteredPoints, setFilteredPoints] = useState([]);
 
+  const [leaveFormData, setLeaveFormData] = useState({ leaveStart: '', leaveEnd: '' });
 
-  const todays = new Date();
-  todays.setHours(0, 0, 0, 0); // Reset time to midnight
-  const tomorrows= new Date(todays);
-  tomorrows.setDate(todays.getDate() + 2); // Set to tomorrow
-  const formattedToday = todays.toISOString().split('T')[0]; // Format today as yyyy-mm-dd
-  const formattedTomorrow = tomorrows.toISOString().split('T')[0]; // Format tomorrow as yyyy-mm-dd
-  
-
-
-  const [leaveFormData, setLeaveFormData] = useState({leaveStart: '', leaveEnd: ''});
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    place: '',
+    point: null, // Store point ID
     plan: [],
     paymentStatus: false,
     startDate: '',
@@ -57,21 +54,45 @@ function Edit() {
   });
 
   useEffect(() => {
+    fetchPoints();
+  }, []);
+
+  useEffect(() => {
+    if (pointsList.length > 0) {
+      initializeFormData();
+    }
+  }, [user, pointsList]); // Runs when either user or pointsList changes and pointsList is populated
+
+  const fetchPoints = async () => {
+    try {
+      const response = await axios.get(`${BaseUrl}/api/points`);
+      setPointsList(response.data);
+    } catch (error) {
+      console.error("Error fetching points:", error);
+    }
+  };
+
+  const initializeFormData = () => {
     const formatDate = (dateString) => {
       if (!dateString) return '';
       const date = new Date(dateString);
       return date.toISOString().split('T')[0];
     };
     const latestOrder = user.latestOrder || {};
+
+    // Find the user's point from pointsList
+    const userPoint = pointsList.find(point => point._id === user.point);
+
     setFormData({
       name: user.name || '',
       phone: user.phone || '',
-      place: user.place || '',
+      point: user.point || null,
       plan: latestOrder.plan || [],
       paymentStatus: user.paymentStatus || false,
       startDate: formatDate(latestOrder.orderStart) || '',
       endDate: formatDate(latestOrder.orderEnd) || '',
     });
+    setPointInputValue(userPoint ? userPoint.place : '');
     if (latestOrder.leave) {
       const activeLeave = latestOrder.leave.find(
         (leave) => new Date(leave.end) > new Date()
@@ -83,8 +104,41 @@ function Edit() {
         });
       }
     }
-  }, [user]);
-// ========================================================================================================
+  };
+
+  const handleNewPointChange = (e) => {
+    const { name, value } = e.target;
+    setNewPoint((prevPoint) => ({
+      ...prevPoint,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (value) => {
+    setNewPoint((prevPoint) => ({
+      ...prevPoint,
+      mode: value
+    }));
+  };
+
+  const handleAddNewPoint = async () => {
+    try {
+      const response = await axios.post(`${BaseUrl}/api/points`, newPoint);
+      const addedPoint = response.data;
+      setPointsList([...pointsList, addedPoint]);
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        point: addedPoint._id
+      }));
+      setPointInputValue(addedPoint.place);
+      setOpenPointModal(false);
+      setModalHeader('Add New Point');
+      setNewPoint({ place: '', mode: 'single' });
+    } catch (error) {
+      console.error("Error adding new point:", error);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -93,14 +147,12 @@ function Edit() {
     }
 
     if (name === 'startDate') {
-      // const startDate = new Date(value);
-      // const endDate = new Date(startDate);
-      // endDate.setDate(endDate.getDate() + 29);
-      const startDate = new Date(value); 
+      const startDate = new Date(value);
       const endDate = new Date(startDate);
       endDate.setMonth(startDate.getMonth() + 1);
       if (endDate.getDate() !== startDate.getDate()) {
-      endDate.setDate(0)}
+        endDate.setDate(0);
+      }
       endDate.setDate(endDate.getDate() - 1);
 
       setFormData({
@@ -108,15 +160,26 @@ function Edit() {
         startDate: value,
         endDate: endDate.toISOString().split('T')[0],
       });
+    } else if (name === 'point') {
+      const inputValue = value;
+      setPointInputValue(inputValue);
+      const filtered = pointsList.filter(point =>
+        point.place.toLowerCase().includes(inputValue.toLowerCase())
+      );
+      setFilteredPoints(filtered);
+      setShowSuggestions(inputValue.length > 0 && filtered.length > 0);
+
+      // Reset formData.point if input doesn't match any point exactly
+      const exactMatch = pointsList.find(point => point.place.toLowerCase() === inputValue.toLowerCase());
+      setFormData({
+        ...formData,
+        point: exactMatch ? exactMatch._id : null,
+      });
     } else {
       setFormData({
         ...formData,
         [name]: type === 'checkbox' ? checked : value,
       });
-    }
-
-    if (name === 'place') {
-      setShowSuggestions(value.length > 0);
     }
   };
 
@@ -130,20 +193,22 @@ function Edit() {
     });
   };
 
-  const handleSuggestionClick = (place) => {
+  const handleSuggestionClick = (point) => {
     setFormData({
       ...formData,
-      place,
+      point: point._id,
     });
+    setPointInputValue(point.place);
     setShowSuggestions(false);
   };
-  
+
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    initializeFormData();
   };
 
   const handleLeaveClick = () => {
@@ -158,19 +223,27 @@ function Edit() {
       [name]: value,
     }));
   };
-// update ========================================================================================================
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!formData.point) {
+      setModalHeader('The entered point is not existing, you can add now');
+      setNewPoint({ ...newPoint, place: pointInputValue });
+      setOpenPointModal(true);
+      return;
+    }
+
     axios.put(`${BaseUrl}/api/updateUser/${user._id}`, formData)
       .then(response => {
         if (response.status === 200) {
           dispatch(fetchCustomers());
           alert('User updated successfully');
           window.history.back(); // This will take the user to the previous page
-        }        
+        }
         else if (response.status === 204) {
           alert('Fill all order data');
-        }  
+        }
         else {
           alert(response.data.message);
         }
@@ -185,7 +258,7 @@ function Edit() {
         }
       });
   };
-// leave========================================================================================================
+
   const handleLeaveSubmit = () => {
     const { leaveStart, leaveEnd } = leaveFormData;
 
@@ -206,10 +279,10 @@ function Edit() {
         alert('Error updating leave');
       });
   };
-// delete========================================================================================================
+
   const handleDelete = (e) => {
     e.preventDefault();
-  
+
     Swal.fire({
       title: 'Select an option',
       showDenyButton: true,
@@ -249,14 +322,19 @@ function Edit() {
       }
     });
   };
-  // ========================================================================================================
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    if (isNaN(d)) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   const today = new Date();
   const twentyDaysAgo = new Date(today);
-  const tommorrow = new Date(today);
-  tommorrow.setDate(today.getDate() + 1);
   twentyDaysAgo.setDate(today.getDate() - 29);
-  const todayISO = today.toISOString().split('T')[0];
   const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
 
   if (!user) {
@@ -264,7 +342,6 @@ function Edit() {
   }
   const latestOrder = user.latestOrder || {};
   const filteredLeaves = (latestOrder.leave || []).filter(leave => new Date(leave.end) <= new Date());
-  
 
   return (
     <div className="flex justify-center my-12">
@@ -274,6 +351,50 @@ function Edit() {
             Edit User
           </Typography>
         </CardHeader>
+
+        {/* Add New Point Modal */}
+        <Dialog open={openPointModal} handler={setOpenPointModal} size="sm">
+          <DialogHeader className={modalHeader.includes('not existing') ? 'text-red-500' : ''}>
+            {modalHeader}
+          </DialogHeader>
+          <DialogBody className="flex flex-col gap-4">
+            <Input
+              label="Place"
+              name="place"
+              value={newPoint.place}
+              onChange={handleNewPointChange}
+            />
+            <Select
+              label="Mode"
+              value={newPoint.mode}
+              onChange={(value) => handleSelectChange(value)}
+            >
+              <Option value="single">Single</Option>
+              <Option value="cluster">Cluster</Option>
+            </Select>
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="text"
+              color="red"
+              onClick={() => {
+                setOpenPointModal(false);
+                setModalHeader('Add New Point');
+                setNewPoint({ place: '', mode: 'single' });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="filled"
+              color="green"
+              onClick={handleAddNewPoint}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </Dialog>
+
         <form onSubmit={handleSubmit}>
           <CardBody className="p-6">
             <div className="mb-4">
@@ -300,35 +421,44 @@ function Edit() {
                 disabled={!isEditing}
               />
             </div>
-            <div className="mb-4">
-              {/* change to points */}
+
+            <div className="mb-4 relative">
               <Input
                 type="text"
-                name="place"
-                label="Place"
-                value={"Brototype"}
+                name="point"
+                label="Point"
+                value={pointInputValue}
                 onChange={handleChange}
                 required
                 disabled={!isEditing}
               />
-              {showSuggestions && (
-                <List className="border rounded shadow-lg mt-2">
-                  {suggestedPlaces
-                    .filter((place) =>
-                      place.toLowerCase().includes(formData.place.toLowerCase())
-                    )
-                    .map((place, index) => (
-                      <ListItem
-                        key={index}
-                        onClick={() => handleSuggestionClick(place)}
-                        className="cursor-pointer"
-                      >
-                        {place}
-                      </ListItem>
-                    ))}
-                </List>
+              {showSuggestions && isEditing && (
+                <ul className="absolute bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto z-10">
+                  {filteredPoints.map((pt) => (
+                    <li
+                      key={pt._id}
+                      className="p-2 cursor-pointer hover:bg-gray-200"
+                      onClick={() => handleSuggestionClick(pt)}
+                    >
+                      {pt.place} ({pt.mode})
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
+
+            {isEditing && (
+              <div className="flex justify-between items-center mb-4">
+                <Button
+                  color="orange"
+                  variant="text"
+                  className="flex items-center gap-2"
+                  onClick={() => setOpenPointModal(true)}
+                >
+                  <PlusIcon className="w-5 h-5" /> New Point
+                </Button>
+              </div>
+            )}
 
             <div className="mb-4">
               <Checkbox
@@ -378,7 +508,7 @@ function Edit() {
                     name="startDate"
                     label="Start Date"
                     value={formData.startDate}
-                    min={twentyDaysAgoISO} // restricts start date before today
+                    min={twentyDaysAgoISO}
                     onChange={handleChange}
                     required
                     disabled={!isEditing}
@@ -390,7 +520,7 @@ function Edit() {
                     name="endDate"
                     label="End Date"
                     value={formData.endDate}
-                    readOnly // disables entering the end date manually
+                    readOnly
                     required
                     disabled
                   />
@@ -399,13 +529,14 @@ function Edit() {
             )}
             <div className="flex justify-between">
               {isEditing ? (
-                <>  <Button type="button" color="red" className="mr-2" onClick={handleDelete}>
-                Delete
-              </Button>
+                <>
+                  <Button type="button" color="red" className="mr-2" onClick={handleDelete}>
+                    Delete
+                  </Button>
                   <Button type="submit" color="green">
                     Save
                   </Button>
-                
+
                   <Button color="red" onClick={handleCancelEdit}>
                     Cancel
                   </Button>
@@ -421,56 +552,49 @@ function Edit() {
             </div>
             {showLeaveSection && (
               <div className="mt-4">
-                { latestOrder.leave?.length > 0 ? (
+                {latestOrder.leave?.length > 0 ? (
                   <List>
-                 
-                 {filteredLeaves.length === 0 ? (
-      <Typography>No leave entries found.</Typography>
-    ) : (
-    <> 
-      <Typography variant="h6" color="blue-gray" className="mb-2">
-                  Completed Leaves
-                </Typography>
-    { filteredLeaves.map((leave, index) => (
-      <ListItem key={index} className="mb-2 bg-yellow-400">
-      <Typography color='black'>{`Leave Start: ${formatDate(leave.start)}, Leave End: ${formatDate(leave.end)}, Leaves: ${leave.numberOfLeaves}`}</Typography>
-    </ListItem>
-    
-      ))}</>
-    )}
+                    {filteredLeaves.length === 0 ? (
+                      <Typography>No leave entries found.</Typography>
+                    ) : (
+                      <>
+                        <Typography variant="h6" color="blue-gray" className="mb-2">
+                          Completed Leaves
+                        </Typography>
+                        {filteredLeaves.map((leave, index) => (
+                          <ListItem key={index} className="mb-2 bg-yellow-400">
+                            <Typography color='black'>{`Leave Start: ${formatDate(leave.start)}, Leave End: ${formatDate(leave.end)}, Leaves: ${leave.numberOfLeaves}`}</Typography>
+                          </ListItem>
+                        ))}
+                      </>
+                    )}
                   </List>
                 ) : (
                   <Typography>No completed Leaves available</Typography>
                 )}
                 <Typography variant="h6" color="blue-gray" className="mt-4 mb-2">
-                  Active Leave
+                  Add Leave
                 </Typography>
                 <div className="mb-4">
-      {console.log('values:', formData.endDate, formattedTomorrow, leaveFormData.leaveStart, leaveFormData.leaveEnd)}
-      <Input
-        type="date"
-        name="leaveStart"
-        label="Leave Start Date"
-        value={leaveFormData.leaveStart || ''}
-        onChange={handleLeaveInputChange}
-        min={formattedTomorrow} // Set minimum date to tomorrow
-        max={formData.endDate || ''} // Ensure endDate is formatted
-        required
-        disabled={new Date(leaveFormData.leaveStart) <= new Date(formattedToday) && new Date(leaveFormData.leaveEnd) > new Date(formattedToday)}
-      />
-    </div>
-    <div className="mb-4">
-      <Input
-        type="date"
-        name="leaveEnd"
-        label="Leave End Date"
-        value={leaveFormData.leaveEnd || ''}
-        onChange={handleLeaveInputChange}
-        min={leaveFormData.leaveStart || formattedTomorrow} // Set minimum to leaveStart or tomorrow
-        max={formData.endDate || ''} // Ensure endDate is formatted
-        required
-      />
-    </div>
+                  <Input
+                    type="date"
+                    name="leaveStart"
+                    label="Leave Start Date"
+                    value={leaveFormData.leaveStart || ''}
+                    onChange={handleLeaveInputChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <Input
+                    type="date"
+                    name="leaveEnd"
+                    label="Leave End Date"
+                    value={leaveFormData.leaveEnd || ''}
+                    onChange={handleLeaveInputChange}
+                    required
+                  />
+                </div>
                 <Button color="blue" onClick={handleLeaveSubmit}>
                   Submit Leave
                 </Button>

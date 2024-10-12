@@ -12,21 +12,32 @@ import {
   Dialog,
   DialogHeader,
   DialogBody,
-  Select,
   DialogFooter,
-  Option
+  Option,
+  Select
 } from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
 import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { PlusIcon } from 'lucide-react';
 
 function Add() {
-
   const [pointsList, setPointsList] = useState([]);
   const [openPointModal, setOpenPointModal] = useState(false);
   const [newPoint, setNewPoint] = useState({ place: '', mode: 'single' });
+  const [modalHeader, setModalHeader] = useState('Add New Point');
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    point: null, // Changed to store point ID
+    plan: [],
+    paymentStatus: false,
+    startDate: '',
+    endDate: '',
+  });
+  const [pointInputValue, setPointInputValue] = useState(''); // New state for point input value
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredPoints, setFilteredPoints] = useState([]);
 
-  // Fetch points from the backend API
   const fetchPoints = async () => {
     try {
       const response = await axios.get(`${BaseUrl}/api/points`);
@@ -58,25 +69,22 @@ function Add() {
   const handleAddNewPoint = async () => {
     try {
       const response = await axios.post(`${BaseUrl}/api/points`, newPoint);
-      setPointsList([...pointsList, response.data]);
+      const addedPoint = response.data;
+      setPointsList([...pointsList, addedPoint]);
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        point: addedPoint._id
+      }));
+      setPointInputValue(addedPoint.place);
       setOpenPointModal(false);
+      setModalHeader('Add New Point');
+      setNewPoint({ place: '', mode: 'single' });
     } catch (error) {
       console.error("Error adding new point:", error);
     }
   };
 
   const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    point: '',
-    plan: [],
-    paymentStatus: false,
-    startDate: '',
-    endDate: '',
-  });
-
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -100,15 +108,26 @@ function Add() {
         endDate: endDate.toISOString().split('T')[0],
       });
       
+    } else if (name === 'point') {
+      const inputValue = value;
+      setPointInputValue(inputValue);
+      const filtered = pointsList.filter(point =>
+        point.place.toLowerCase().includes(inputValue.toLowerCase())
+      );
+      setFilteredPoints(filtered);
+      setShowSuggestions(inputValue.length > 0 && filtered.length > 0);
+
+      // Reset formData.point if input doesn't match any point exactly
+      const exactMatch = pointsList.find(point => point.place.toLowerCase() === inputValue.toLowerCase());
+      setFormData({
+        ...formData,
+        point: exactMatch ? exactMatch._id : null,
+      });
     } else {
       setFormData({
         ...formData,
         [name]: type === 'checkbox' ? checked : value,
       });
-    }
-
-    if (name === 'place') {
-      setShowSuggestions(value.length > 0);
     }
   };
 
@@ -124,6 +143,14 @@ function Add() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!formData.point) {
+      setModalHeader('The entered point is not existing, you can add now');
+      setNewPoint({ ...newPoint, place: pointInputValue });
+      setOpenPointModal(true);
+      return;
+    }
+
     axios.post(`${BaseUrl}/api/postorder`, formData)
       .then(response => {
         if (response.status === 200) {
@@ -132,12 +159,13 @@ function Add() {
           setFormData({
             name: '',
             phone: '',
-            point: '',
+            point: null,
             plan: [],
             paymentStatus: false,
             startDate: '',
             endDate: ''
           });
+          setPointInputValue('');
         } else {
           alert(response.data.message);
         }
@@ -154,21 +182,19 @@ function Add() {
       });
   };
 
-  const handleSuggestionClick = (place) => {
+  const handleSuggestionClick = (point) => {
     setFormData({
       ...formData,
-      point: place,
+      point: point._id,
     });
+    setPointInputValue(point.place);
     setShowSuggestions(false);
   };
 
-  // Date change
   const today = new Date();
   const twentyDaysAgo = new Date(today);
   twentyDaysAgo.setDate(today.getDate() - 29);
-  const todayISO = today.toISOString().split('T')[0];
   const twentyDaysAgoISO = twentyDaysAgo.toISOString().split('T')[0];
-  // =============================================================================================
 
   return (
     <div className="flex justify-center my-12">
@@ -180,7 +206,9 @@ function Add() {
         </CardHeader>
         {/* Add New Point Modal */}
         <Dialog open={openPointModal} handler={setOpenPointModal} size="sm">
-          <DialogHeader>Add New Point</DialogHeader>
+          <DialogHeader className={modalHeader.includes('not existing') ? 'text-red-500' : ''}>
+            {modalHeader}
+          </DialogHeader>
           <DialogBody className="flex flex-col gap-4">
             <Input
               label="Place"
@@ -201,7 +229,11 @@ function Add() {
             <Button
               variant="text"
               color="red"
-              onClick={() => setOpenPointModal(false)}
+              onClick={() => {
+                setOpenPointModal(false);
+                setModalHeader('Add New Point');
+                setNewPoint({ place: '', mode: 'single' });
+              }}
             >
               Cancel
             </Button>
@@ -240,21 +272,31 @@ function Add() {
               />
             </div>
 
-            <div className="mb-4">
-              <Select
+            <div className="mb-4 relative">
+              <Input
+                type="text"
+                name="point"
                 label="Point"
-                value={formData.point}
-                onChange={(value) => setFormData(prevFormData => ({ ...prevFormData, point: value }))}
-              >
-                {pointsList.map((pt) => (
-                  <Option key={pt._id} value={pt._id}>
-                    {pt.place} ({pt.mode})
-                  </Option>
-                ))}
-              </Select>
+                value={pointInputValue}
+                onChange={handleChange}
+                required
+              />
+              {showSuggestions && (
+                <ul className="absolute bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto z-10">
+                  {filteredPoints.map((pt) => (
+                    <li
+                      key={pt._id}
+                      className="p-2 cursor-pointer hover:bg-gray-200"
+                      onClick={() => handleSuggestionClick(pt)}
+                    >
+                      {pt.place} ({pt.mode})
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center mb-4">
               <Button
                 color="orange"
                 variant="text"
@@ -332,15 +374,18 @@ function Add() {
               type="button"
               color="red"
               className="mr-2"
-              onClick={() => setFormData({
-                name: '',
-                phone: '',
-                point: '',
-                plan: [],
-                paymentStatus: false,
-                startDate: '',
-                endDate: ''
-              })}
+              onClick={() => {
+                setFormData({
+                  name: '',
+                  phone: '',
+                  point: null,
+                  plan: [],
+                  paymentStatus: false,
+                  startDate: '',
+                  endDate: ''
+                });
+                setPointInputValue('');
+              }}
             >
               Clear
             </Button>
