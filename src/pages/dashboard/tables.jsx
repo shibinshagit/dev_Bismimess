@@ -225,7 +225,7 @@ export function Tables() {
                   </MenuList>
                 </Menu>,
                  "Plan",
-                "Expire",
+                "Expires",
                 "Edit",
                  <Typography as="a" className="text-xs font-semibold text-red-600 flex" onClick={() => printData(filteredUsers)}>
                   <Download/>{filteredUsers.length}
