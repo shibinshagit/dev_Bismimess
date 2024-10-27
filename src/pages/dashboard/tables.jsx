@@ -103,15 +103,22 @@ export function Tables() {
     
     const invoiceAmount = bill - totalLeave * reduce; // Calculate invoice amount
     const message = `
-  ${selectedUser.name}, your food bill till ${orderEndDate} is as follows:
-  
-  Total leaves: ${totalLeave}
-  Total amount: ₹${bill} 
-  Leave deduction: ${totalLeave} x ₹${reduce} = ₹${totalLeave * reduce}
-  ------------------------------------
-  Amount to pay: ₹${invoiceAmount} 👍
-    `;
+    ${selectedUser.name}, your food bill till ${orderEndDate} is as follows:
     
+    Total leaves: ${totalLeave}
+    Total amount: ₹${bill} 
+    Leave deduction: ${totalLeave} x ₹${reduce} = ₹${totalLeave * reduce}
+    ------------------------------------
+    Amount to pay: ₹${invoiceAmount} 👍
+  
+    Bismi Mess Payment Method:
+  
+    Pay to - 9847952414 (Shebeer km)
+    (GPay, PhonePe, Paytm, other UPI)
+  
+    (Send the screenshot after payment)
+  `;
+  
     const whatsappUrl = `https://wa.me/91${selectedUser.phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
