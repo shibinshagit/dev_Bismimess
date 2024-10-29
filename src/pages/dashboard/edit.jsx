@@ -1,35 +1,104 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { BaseUrl } from '../../constants/BaseUrl';
-import './swal.css';
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  Typography,
-  Input,
-  Button,
-  Checkbox,
-  List,
-  ListItem,
-  Dialog,
-  DialogHeader,
-  DialogBody,
-  DialogFooter,
-  Option,
-  Select
-} from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
-import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PlusIcon } from 'lucide-react';
+import { 
+  Card, CardHeader, CardBody, Typography, Input, Button, Checkbox, 
+  List, ListItem, Dialog, DialogHeader, DialogBody, DialogFooter, 
+  Option, Select 
+} from "@material-tailwind/react";
+import { fetchCustomers } from '@/redux/reducers/authSlice';
+import { BaseUrl } from '../../constants/BaseUrl';
+import './swal.css';
+import LeaveSection from '@/components/LeaveSection';
+
+
+/* Reusable Components */
+
+// AddNewPointModal Component
+const AddNewPointModal = ({
+  open,
+  handleClose,
+  newPoint,
+  handleNewPointChange,
+  handleSelectChange,
+  handleAddNewPoint,
+  modalHeader
+}) => (
+  <Dialog open={open} handler={handleClose} size="sm">
+    <DialogHeader className={modalHeader.includes('not existing') ? 'text-red-500' : ''}>
+      {modalHeader}
+    </DialogHeader>
+    <DialogBody className="flex flex-col gap-4">
+      <Input
+        label="Place"
+        name="place"
+        value={newPoint.place}
+        onChange={handleNewPointChange}
+      />
+      <Select
+        label="Mode"
+        value={newPoint.mode}
+        onChange={handleSelectChange}
+      >
+        <Option value="single">Single</Option>
+        <Option value="cluster">Cluster</Option>
+      </Select>
+    </DialogBody>
+    <DialogFooter>
+      <Button
+        variant="text"
+        color="red"
+        onClick={handleClose}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="filled"
+        color="green"
+        onClick={handleAddNewPoint}
+      >
+        Save
+      </Button>
+    </DialogFooter>
+  </Dialog>
+);
+
+// Reusable PlanCheckboxes Component
+const PlanCheckboxes = ({ plan, handlePlanChange, isEditing }) => (
+  <div className="mb-4">
+    <Typography variant="small" className="font-semibold mb-2">
+      Plan
+    </Typography>
+    <div className="flex flex-col gap-2">
+      {['Breakfast', 'Lunch', 'Dinner'].map((meal, index) => {
+        const value = meal.charAt(0).toUpperCase(); // 'B', 'L', 'D'
+        return (
+          <Checkbox
+            key={index}
+            name="plan"
+            label={meal}
+            value={value}
+            checked={plan.includes(value)}
+            onChange={handlePlanChange}
+            disabled={!isEditing}
+          />
+        );
+      })}
+    </div>
+  </div>
+);
+/* Main Edit Component */
 
 function Edit() {
   const location = useLocation();
-  const user = location.state.user || {};
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // State Variables
+  const [user, setUser] = useState(location.state.user || {});
   const [isEditing, setIsEditing] = useState(false);
   const [showLeaveSection, setShowLeaveSection] = useState(false);
 
@@ -53,16 +122,22 @@ function Edit() {
     endDate: '',
   });
 
+  // Effects
   useEffect(() => {
     fetchPoints();
+    if (user._id) {
+      fetchUserById(user._id);
+    }
   }, []);
 
   useEffect(() => {
-    if (pointsList.length > 0) {
+    if (pointsList.length > 0 && user) {
       initializeFormData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, pointsList]); // Runs when either user or pointsList changes and pointsList is populated
 
+  // Fetch Points
   const fetchPoints = async () => {
     try {
       const response = await axios.get(`${BaseUrl}/api/points`);
@@ -72,6 +147,17 @@ function Edit() {
     }
   };
 
+  // Fetch User by ID
+  const fetchUserById = async (userId) => {
+    try {
+      const response = await axios.get(`${BaseUrl}/api/user/${userId}`);
+      setUser(response.data); 
+    } catch (err) {
+      console.error('Error fetching user:', err);
+    }
+  };
+
+  // Initialize Form Data
   const initializeFormData = () => {
     const formatDate = (dateString) => {
       if (!dateString) return '';
@@ -94,18 +180,14 @@ function Edit() {
     });
     setPointInputValue(userPoint ? userPoint.place : '');
     if (latestOrder.leave) {
-      const activeLeave = latestOrder.leave.find(
-        (leave) => new Date(leave.end) > new Date()
-      );
-      if (activeLeave) {
-        setLeaveFormData({
-          leaveStart: formatDate(activeLeave.start),
-          leaveEnd: formatDate(activeLeave.end)
-        });
-      }
+      // Initialize leaveFormData if needed
+      // For simplicity, we keep it empty as LeaveSection handles it
     }
   };
 
+  // Handlers
+
+  // Handle changes in the Add New Point form
   const handleNewPointChange = (e) => {
     const { name, value } = e.target;
     setNewPoint((prevPoint) => ({
@@ -121,6 +203,7 @@ function Edit() {
     }));
   };
 
+  // Add a new point
   const handleAddNewPoint = async () => {
     try {
       const response = await axios.post(`${BaseUrl}/api/points`, newPoint);
@@ -136,9 +219,11 @@ function Edit() {
       setNewPoint({ place: '', mode: 'single' });
     } catch (error) {
       console.error("Error adding new point:", error);
+      Swal.fire('Error', 'Failed to add new point.', 'error');
     }
   };
 
+  // Handle changes in the main form
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -183,6 +268,7 @@ function Edit() {
     }
   };
 
+  // Handle changes in the plan checkboxes
   const handlePlanChange = (e) => {
     const { value, checked } = e.target;
     setFormData((prevFormData) => {
@@ -193,6 +279,7 @@ function Edit() {
     });
   };
 
+  // Handle suggestion click for points
   const handleSuggestionClick = (point) => {
     setFormData({
       ...formData,
@@ -202,19 +289,23 @@ function Edit() {
     setShowSuggestions(false);
   };
 
+  // Edit button click
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
+  // Cancel edit
   const handleCancelEdit = () => {
     setIsEditing(false);
     initializeFormData();
   };
 
+  // Toggle leave section
   const handleLeaveClick = () => {
     setShowLeaveSection(!showLeaveSection);
   };
 
+  // Handle changes in the leave form
   const handleLeaveInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -224,63 +315,117 @@ function Edit() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // Submit main form
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.point) {
-      setModalHeader('The entered point is not existing, you can add now');
+      setModalHeader('The entered point does not exist. You can add it now.');
       setNewPoint({ ...newPoint, place: pointInputValue });
       setOpenPointModal(true);
       return;
     }
 
-    axios.put(`${BaseUrl}/api/updateUser/${user._id}`, formData)
-      .then(response => {
-        if (response.status === 200) {
-          dispatch(fetchCustomers());
-          alert('User updated successfully');
-          window.history.back(); // This will take the user to the previous page
-        }
-        else if (response.status === 204) {
-          alert('Fill all order data');
-        }
-        else {
-          alert(response.data.message);
-        }
-      })
-      .catch(error => {
-        if (error.response && error.response.status === 400) {
-          alert('Phone number already exists');
-        }
-        else {
-          console.error('There was an error updating the user:', error);
-          alert('Error updating user');
-        }
-      });
+    try {
+      const response = await axios.put(`${BaseUrl}/api/updateUser/${user._id}`, formData);
+      if (response.status === 200) {
+        dispatch(fetchCustomers());
+        Swal.fire('Success', 'User updated successfully', 'success');
+        navigate(-1); // Go back to the previous page
+      } else if (response.status === 204) {
+        Swal.fire('Warning', 'Fill all order data', 'warning');
+      } else {
+        Swal.fire('Error', response.data.message, 'error');
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        Swal.fire('Error', 'Phone number already exists', 'error');
+      } else {
+        console.error('There was an error updating the user:', error);
+        Swal.fire('Error', 'Error updating user', 'error');
+      }
+    }
   };
 
-  const handleLeaveSubmit = () => {
+  // Submit leave form
+  const handleLeaveSubmit = async () => {
     const { leaveStart, leaveEnd } = leaveFormData;
 
-    axios.post(`${BaseUrl}/api/addLeave/${user.latestOrder._id}`, {
-      leaveStart,
-      leaveEnd
-    })
-      .then(response => {
-        if (response.status === 200) {
-          dispatch(fetchCustomers());
-          alert('Leave updated successfully');
-        } else {
-          alert('Error updating leave');
-        }
-      })
-      .catch(error => {
-        console.error('Error updating leave:', error);
-        alert('Error updating leave');
+    try {
+      const response = await axios.post(`${BaseUrl}/api/addLeave/${user.latestOrder._id}`, {
+        leaveStart,
+        leaveEnd
       });
+      if (response.status === 200) {
+        dispatch(fetchCustomers());
+        Swal.fire('Success', 'Leave added successfully', 'success');
+        fetchUserById(user._id);
+        setLeaveFormData({ leaveStart: '', leaveEnd: '' });
+      } else {
+        Swal.fire('Error', response.data.message || 'Error adding leave', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding leave:', error.response?.data?.message || error.message);
+      if (error.response && error.response.status === 400) {
+        Swal.fire('Error', error.response.data.message, 'error');
+      } else {
+        Swal.fire('Error', 'An error occurred while adding leave.', 'error');
+      }
+    }
   };
 
-  const handleDelete = (e) => {
+  // Handle Edit Leave
+  const handleEditLeave = async (leave) => {
+    try {
+      const response = await axios.put(`${BaseUrl}/api/editLeave/${user.latestOrder._id}/${leave._id}`, {
+        leaveStart: leave.start,
+        leaveEnd: leave.end
+      });
+      if (response.status === 200) {
+        dispatch(fetchCustomers());
+        Swal.fire('Success', 'Leave updated successfully', 'success');
+        fetchUserById(user._id);
+      } else {
+        Swal.fire('Error', response.data.message || 'Error updating leave', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating leave:', error.response?.data?.message || error.message);
+      Swal.fire('Error', 'An error occurred while updating leave.', 'error');
+    }
+  };
+
+  // Handle Delete Leave
+  const handleDeleteLeave = async (leaveId) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to delete this leave?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.delete(`${BaseUrl}/api/deleteLeave/${user.latestOrder._id}/${leaveId}`);
+          if (response.status === 200) {
+            dispatch(fetchCustomers());
+            Swal.fire('Deleted!', 'Leave has been deleted.', 'success');
+            fetchUserById(user._id);
+          } else {
+            Swal.fire('Error!', 'Cannot delete leave.', 'error');
+          }
+        } catch (error) {
+          console.error('Error deleting leave:', error);
+          Swal.fire('Error!', 'An error occurred while deleting the leave.', 'error');
+        }
+      }
+    });
+  };
+
+
+  // Handle Delete or Block
+  const handleDelete = async (e) => {
     e.preventDefault();
 
     Swal.fire({
@@ -290,39 +435,38 @@ function Edit() {
       confirmButtonText: 'Delete',
       denyButtonText: 'Block',
       cancelButtonText: 'Cancel'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        axios.delete(`${BaseUrl}/api/deleteUser/${user._id}`)
-          .then(response => {
-            if (response.status === 200) {
-              dispatch(fetchCustomers());
-              Swal.fire('Deleted!', 'User has been deleted.', 'success');
-              navigate('/dashboard/home');
-            } else {
-              Swal.fire('Error!', 'Cannot delete user.', 'error');
-            }
-          })
-          .catch(error => {
-            console.error('Error deleting user:', error);
-            Swal.fire('Error!', 'An error occurred while deleting the user.', 'error');
-          });
+        try {
+          const response = await axios.delete(`${BaseUrl}/api/deleteUser/${user._id}`);
+          if (response.status === 200) {
+            dispatch(fetchCustomers());
+            Swal.fire('Deleted!', 'User has been deleted.', 'success');
+            navigate('/dashboard/home');
+          } else {
+            Swal.fire('Error!', 'Cannot delete user.', 'error');
+          }
+        } catch (error) {
+          console.error('Error deleting user:', error);
+          Swal.fire('Error!', 'An error occurred while deleting the user.', 'error');
+        }
       } else if (result.isDenied) {
-        axios.put(`${BaseUrl}/api/trashUser/${user._id}`)
-          .then(response => {
-            if (response.status === 200) {
-              setIsEditing(false);
-            } else {
-              Swal.fire('Error!', 'Cannot trash user.', 'error');
-            }
-          })
-          .catch(error => {
-            console.error('Error trashing user:', error);
-            Swal.fire('Error!', 'An error occurred while trashing the user.', 'error');
-          });
+        try {
+          const response = await axios.put(`${BaseUrl}/api/trashUser/${user._id}`);
+          if (response.status === 200) {
+            setIsEditing(false);
+            Swal.fire('Blocked!', 'User has been blocked.', 'success');
+          } else {
+            Swal.fire('Error!', 'Cannot trash user.', 'error');
+          }
+        } catch (error) {
+          console.error('Error trashing user:', error);
+          Swal.fire('Error!', 'An error occurred while trashing the user.', 'error');
+        }
       }
     });
   };
-
+  // Format Date
   const formatDate = (date) => {
     const d = new Date(date);
     if (isNaN(d)) return '';
@@ -332,6 +476,7 @@ function Edit() {
     return `${day}/${month}/${year}`;
   };
 
+  // Date Constraints
   const today = new Date();
   const twentyDaysAgo = new Date(today);
   twentyDaysAgo.setDate(today.getDate() - 29);
@@ -340,6 +485,7 @@ function Edit() {
   if (!user) {
     return <div>Loading...</div>;
   }
+
   const latestOrder = user.latestOrder || {};
   const filteredLeaves = (latestOrder.leave || []).filter(leave => new Date(leave.end) <= new Date());
 
@@ -353,50 +499,23 @@ function Edit() {
         </CardHeader>
 
         {/* Add New Point Modal */}
-        <Dialog open={openPointModal} handler={setOpenPointModal} size="sm">
-          <DialogHeader className={modalHeader.includes('not existing') ? 'text-red-500' : ''}>
-            {modalHeader}
-          </DialogHeader>
-          <DialogBody className="flex flex-col gap-4">
-            <Input
-              label="Place"
-              name="place"
-              value={newPoint.place}
-              onChange={handleNewPointChange}
-            />
-            <Select
-              label="Mode"
-              value={newPoint.mode}
-              onChange={(value) => handleSelectChange(value)}
-            >
-              <Option value="single">Single</Option>
-              <Option value="cluster">Cluster</Option>
-            </Select>
-          </DialogBody>
-          <DialogFooter>
-            <Button
-              variant="text"
-              color="red"
-              onClick={() => {
-                setOpenPointModal(false);
-                setModalHeader('Add New Point');
-                setNewPoint({ place: '', mode: 'single' });
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="filled"
-              color="green"
-              onClick={handleAddNewPoint}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </Dialog>
+        <AddNewPointModal
+          open={openPointModal}
+          handleClose={() => {
+            setOpenPointModal(false);
+            setModalHeader('Add New Point');
+            setNewPoint({ place: '', mode: 'single' });
+          }}
+          newPoint={newPoint}
+          handleNewPointChange={handleNewPointChange}
+          handleSelectChange={handleSelectChange}
+          handleAddNewPoint={handleAddNewPoint}
+          modalHeader={modalHeader}
+        />
 
         <form onSubmit={handleSubmit}>
           <CardBody className="p-6">
+            {/* Name Input */}
             <div className="mb-4">
               <Input
                 type="text"
@@ -408,6 +527,8 @@ function Edit() {
                 disabled={!isEditing}
               />
             </div>
+
+            {/* Phone Number Input */}
             <div className="mb-4">
               <Input
                 type="number"
@@ -422,6 +543,7 @@ function Edit() {
               />
             </div>
 
+            {/* Point Input with Suggestions */}
             <div className="mb-4 relative">
               <Input
                 type="text"
@@ -447,6 +569,7 @@ function Edit() {
               )}
             </div>
 
+            {/* New Point Button */}
             {isEditing && (
               <div className="flex justify-between items-center mb-4">
                 <Button
@@ -460,6 +583,7 @@ function Edit() {
               </div>
             )}
 
+            {/* Payment Status Checkbox */}
             <div className="mb-4">
               <Checkbox
                 name="paymentStatus"
@@ -469,39 +593,18 @@ function Edit() {
                 disabled={!isEditing}
               />
             </div>
+
+            {/* Conditional Rendering based on Payment Status */}
             {formData.paymentStatus && (
               <>
-                <div className="mb-4">
-                  <Typography variant="small" className="font-semibold mb-2">
-                    Plan
-                  </Typography>
-                  <div className="flex flex-col gap-2">
-                    <Checkbox
-                      name="plan"
-                      label="Breakfast"
-                      value="B"
-                      checked={formData.plan.includes('B')}
-                      onChange={handlePlanChange}
-                      disabled={!isEditing}
-                    />
-                    <Checkbox
-                      name="plan"
-                      label="Lunch"
-                      value="L"
-                      checked={formData.plan.includes('L')}
-                      onChange={handlePlanChange}
-                      disabled={!isEditing}
-                    />
-                    <Checkbox
-                      name="plan"
-                      label="Dinner"
-                      value="D"
-                      checked={formData.plan.includes('D')}
-                      onChange={handlePlanChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                </div>
+                {/* Plan Checkboxes */}
+                <PlanCheckboxes
+                  plan={formData.plan}
+                  handlePlanChange={handlePlanChange}
+                  isEditing={isEditing}
+                />
+
+                {/* Start Date Input */}
                 <div className="mb-4">
                   <Input
                     type="date"
@@ -514,6 +617,8 @@ function Edit() {
                     disabled={!isEditing}
                   />
                 </div>
+
+                {/* End Date Input */}
                 <div className="mb-4">
                   <Input
                     type="date"
@@ -527,6 +632,8 @@ function Edit() {
                 </div>
               </>
             )}
+
+            {/* Action Buttons */}
             <div className="flex justify-between">
               {isEditing ? (
                 <>
@@ -550,58 +657,17 @@ function Edit() {
                 </>
               )}
             </div>
+
+            {/* Leave Section */}
             {showLeaveSection && (
-              <div className="mt-4">
-                {latestOrder.leave?.length > 0 ? (
-                  <List>
-                    {filteredLeaves.length === 0 ? (
-                      <Typography>No leave entries found.</Typography>
-                    ) : (
-                      <>
-                        <Typography variant="h6" color="blue-gray" className="mb-2">
-                          Completed Leaves
-                        </Typography>
-                        {filteredLeaves.map((leave, index) => (
-                          <ListItem key={index} className="mb-2 bg-yellow-400">
-                            <Typography color='black'>{`Leave Start: ${formatDate(leave.start)}, Leave End: ${formatDate(leave.end)}, Leaves: ${leave.numberOfLeaves}`}</Typography>
-                          </ListItem>
-                        ))}
-                      </>
-                    )}
-                  </List>
-                ) : (
-                  <Typography>No completed Leaves available</Typography>
-                )}
-                <Typography variant="h6" color="blue-gray" className="mt-4 mb-2">
-                  Add Leave
-                </Typography>
-                <div className="mb-4">
-                  <Input
-                    type="date"
-                    name="leaveStart"
-                    label="Leave Start Date"
-                    value={leaveFormData.leaveStart || ''}
-                    onChange={handleLeaveInputChange}
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <Input
-                    type="date"
-                    name="leaveEnd"
-                    label="Leave End Date"
-                    value={leaveFormData.leaveEnd || ''}
-                    onChange={handleLeaveInputChange}
-                    required
-                  />
-                </div>
-                <Button color="blue" onClick={handleLeaveSubmit}>
-                  Submit Leave
-                </Button>
-                <Typography variant="body2" color="blue-gray" className="mt-4">
-                  Total Leaves: {latestOrder.leave?.reduce((sum, leave) => sum + leave.numberOfLeaves, 0) || 0}
-                </Typography>
-              </div>
+              <LeaveSection
+                leaves={latestOrder.leave || []}
+                formatDate={formatDate}
+                handleLeaveInputChange={handleLeaveInputChange}
+                handleLeaveSubmit={handleLeaveSubmit}
+                handleEditLeave={handleEditLeave}
+                handleDeleteLeave={handleDeleteLeave}
+              />
             )}
           </CardBody>
         </form>

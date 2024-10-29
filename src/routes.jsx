@@ -19,6 +19,8 @@ import Marker from "./pages/attendance/marker";
 import Delivery from "./layouts/delivery";
 import Points from "./pages/delivery/points";
 import DeliveryLogin from "./pages/delivery/deliveryLogin";
+import { Notebook } from "lucide-react";
+import { TodaysLeave } from "./pages/dashboard/TodaysLeave";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -34,11 +36,18 @@ export const routes = [
         path: "/home",
         element: <Home />,
       },{
-        icon: <TruckIcon {...icon} />,
-        name: "Supply",
-        path: "/delivery",
-        element: <UpcomingDelivery />,
-      },{
+        icon: <Notebook {...icon} />,
+        name: "Leave",
+        path: "/leave",
+        element: <TodaysLeave />,
+      },
+      // {
+      //   icon: <Notebook {...icon} />,
+      //   name: "Leave",
+      //   path: "/delivery",
+      //   element: <UpcomingDelivery />,
+      // },
+      {
         icon: <HomeModernIcon {...icon} />,
         name: "Kitchen",
         path: "/kitchen",

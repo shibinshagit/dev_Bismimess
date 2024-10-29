@@ -61,7 +61,9 @@ export function Tables() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
+  const [showLeaves, setShowLeaves] = useState(false);
 
+  const toggleShowLeaves = () => setShowLeaves(prev => !prev);
 
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -70,6 +72,8 @@ export function Tables() {
   const [bill, setBill] = useState(0);
 
   const handleInvoiceDialog = (user) => {
+    const totalLeaveDays = user.latestOrder?.leave.reduce((acc, leave) => acc + leave.numberOfLeaves, 0);
+    setTotalLeave(totalLeaveDays);
     setSelectedUser(user);
 
     const planLength = user?.latestOrder?.plan?.length;
@@ -94,7 +98,7 @@ export function Tables() {
   const handleClose = () => {
     setOpen(false);
     setSelectedUser(null);
-    setTotalLeave(0); // Reset leave input
+    setTotalLeave(totalLeaveDays); // Reset leave input
   };
 
   const handleSendInvoice = () => {
@@ -280,7 +284,7 @@ export function Tables() {
               <div>
               <Typography variant="small" color="blue-gray" className="font-semibold">
   {user.location && typeof user.location === 'object' ? (
-    <>
+    <>{console.log('users:',user)}
         <a
           href={`https://www.google.com/maps/dir/?api=1&destination=${user.location.latitude},${user.location.longitude}`}
           target="_blank"
@@ -374,30 +378,47 @@ export function Tables() {
 
 
         <Dialog open={open} handler={handleClose}>
-  <DialogHeader>Send Invoice</DialogHeader>
-  <DialogBody>
-    <Typography variant="h6" className="mb-3"> {selectedUser?.name} </Typography>
-      <Input
-        type="number"
-        value={totalLeave}
-        onChange={(e) => setTotalLeave(Number(e.target.value))}
-        label='Total Leave'
+      <DialogHeader>Send Invoice <Button variant="gradient" color="dark" className='text-yellow-500 ml-3' onClick={toggleShowLeaves}>
+          {showLeaves ? "Hide Leaves" : "Show Leaves"}
+        </Button></DialogHeader>
+      <DialogBody>
+        <Typography variant="h6" className="mb-3"> 
+          {selectedUser?.name} 
+        </Typography>
+        
        
-      />
-   
-    <Typography variant="h6" className="mt-2">
-      Bill Amount = {bill - totalLeave * reduce}
+
+        {showLeaves && selectedUser?.latestOrder?.leave?.map((leave, index) => (
+  <div key={leave._id} className="m-3  bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+    <Typography variant="body2" color="gray-700" className="bg-gray-100 p-3 rounded-md text-sm">
+      {`Start: ${new Date(leave.start).toLocaleDateString()} | End: ${new Date(leave.end).toLocaleDateString()} | Days: ${leave.numberOfLeaves}`}
     </Typography>
-  </DialogBody>
-  <DialogFooter>
-    <Button variant="text" color="red" onClick={handleClose} className="mr-2">
-      Cancel
-    </Button>
-    <Button variant="gradient" color="dark" onClick={handleSendInvoice}>
-      Send 
-    </Button>
-  </DialogFooter>
-</Dialog>
+  </div>
+))}
+
+
+
+        <Input
+          type="number"
+          value={totalLeave}
+          onChange={(e) => setTotalLeave(Number(e.target.value))}
+          label="Total Leave"
+        />
+       
+        <Typography variant="h6" className="mt-2">
+          Bill Amount = {bill - totalLeave * reduce}
+        </Typography>
+      </DialogBody>
+      
+      <DialogFooter>
+        <Button variant="text" color="red" onClick={handleClose} className="mr-2">
+          Cancel
+        </Button>
+        <Button variant="gradient" color="dark" onClick={handleSendInvoice}>
+          Send 
+        </Button>
+      </DialogFooter>
+    </Dialog>
 
 
       </CardBody>
