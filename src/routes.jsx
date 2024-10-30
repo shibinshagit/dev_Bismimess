@@ -19,8 +19,9 @@ import Marker from "./pages/attendance/marker";
 import Delivery from "./layouts/delivery";
 import Points from "./pages/delivery/points";
 import DeliveryLogin from "./pages/delivery/deliveryLogin";
-import { Notebook } from "lucide-react";
+import { Notebook, Send } from "lucide-react";
 import { TodaysLeave } from "./pages/dashboard/TodaysLeave";
+import { ExpiredUsers } from "./pages/dashboard/ExpiredUsers";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -37,7 +38,7 @@ export const routes = [
         element: <Home />,
       },{
         icon: <Notebook {...icon} />,
-        name: "Leave",
+        name: "Leaves",
         path: "/leave",
         element: <TodaysLeave />,
       },
@@ -48,11 +49,18 @@ export const routes = [
       //   element: <UpcomingDelivery />,
       // },
       {
-        icon: <HomeModernIcon {...icon} />,
-        name: "Kitchen",
-        path: "/kitchen",
-        element: <Kitchen />,
-      },{
+        icon: <Send {...icon} />,
+        name: "Expiry",
+        path: "/Expiry",
+        element: <ExpiredUsers />,
+      },
+      // {
+      //   icon: <HomeModernIcon {...icon} />,
+      //   name: "Kitchen",
+      //   path: "/kitchen",
+      //   element: <Kitchen />,
+      // },
+      {
         icon: <UserCircleIcon {...icon} />,
         name: "add",
         path: "/add",

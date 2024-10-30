@@ -1,4 +1,4 @@
-// src/pages/TodaysLeave.jsx
+// src/pages/ExpiredUsers.jsx
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -7,35 +7,35 @@ import {
   Spinner,
 } from "@material-tailwind/react";
 import { BaseUrl } from "@/constants/BaseUrl"; // Ensure this points to your backend
-import PointCard from "@/components/PointsCard";
+import PointCard from "@/components/PointsCardExpiry";
 
-export function TodaysLeave () {
+export function ExpiredUsers ()  {
   const [pointsData, setPointsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch Points with Leave Today Data
-  const fetchPointsWithLeaveToday = async () => {
+  // Fetch Points with Expired Users Data
+  const fetchPointsWithExpiredUsers = async () => {
     try {
-      const response = await axios.get(`${BaseUrl}/api/pointsWithLeaveToday`); // Ensure correct endpoint
+      const response = await axios.get(`${BaseUrl}/api/pointsWithExpiredUsers`); // Ensure correct endpoint
       console.log("Fetched Points Data:", response.data);
       setPointsData(response.data);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching points with leave today:", err);
+      console.error("Error fetching points with expired users:", err);
       setError("Failed to fetch data. Please try again later.");
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPointsWithLeaveToday();
+    fetchPointsWithExpiredUsers();
   }, []);
 
   // Frontend Sorting Safeguard (Optional)
   const sortedPoints = [...pointsData].sort((a, b) => {
-    if (a.totalLeaveToday > 0 && b.totalLeaveToday === 0) return -1;
-    if (a.totalLeaveToday === 0 && b.totalLeaveToday > 0) return 1;
+    if (a.totalExpiredUsers > 0 && b.totalExpiredUsers === 0) return -1;
+    if (a.totalExpiredUsers === 0 && b.totalExpiredUsers > 0) return 1;
     return a.place.localeCompare(b.place);
   });
 
@@ -59,8 +59,7 @@ export function TodaysLeave () {
 
   return (
     <div className="p-2 bg-gray-100 min-h-screen">
-  
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-3 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-12">
         {sortedPoints.map((point) => (
           <PointCard key={point.place} point={point} />
         ))}
@@ -68,7 +67,5 @@ export function TodaysLeave () {
     </div>
   );
 };
-
-
 
 

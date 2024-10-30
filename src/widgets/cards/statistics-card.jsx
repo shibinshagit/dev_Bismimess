@@ -7,32 +7,40 @@ import {
 } from "@material-tailwind/react";
 import PropTypes from "prop-types";
 
+const styles = {
+  shiningEffect: {
+    background: "linear-gradient(270deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.5) 100%)",
+    backgroundSize: "200% 100%",
+    animation: "shine 1.5s infinite",
+  },
+};
+
+// Adding keyframes for the shine effect
+const shineKeyframes = `
+@keyframes shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+`;
+
 export function StatisticsCard({ color, icon, title, value, footer }) {
   return (
-    <Card className="border border-blue-gray-100 shadow-sm">
-      <CardHeader
-        variant="gradient"
-        color={color}
-        floated={false}
-        shadow={false}
-        className="absolute grid h-12 w-12 place-items-center"
-      >
-        {icon}
-      </CardHeader>
-      <CardBody className="p-4 text-right">
-        <Typography variant="small" className="font-normal text-blue-gray-600">
-          {title}
-        </Typography>
-        <Typography variant="h4" color="blue-gray">
-          {value}
-        </Typography>
-      </CardBody>
-      {footer && (
-        <CardFooter className="border-t border-blue-gray-50 p-4">
-          {footer}
-        </CardFooter>
-      )}
-    </Card>
+    <>
+      <style>{shineKeyframes}</style>
+      <Card className="border bg-gray-400 border-blue-gray-100 shadow-sm p-3 relative overflow-hidden">
+        <div className="absolute inset-0" style={styles.shiningEffect}></div>
+        <div className="relative z-10 flex flex-col items-center gap-1">
+          <div className="flex items-center">
+            <Typography variant="small" className="font-medium text-blue-gray-700">
+              {title}
+            </Typography>
+          </div>
+          <Typography variant="h4" color="blue-gray" className="text-center font-semibold relative z-10">
+            {value}
+          </Typography>
+        </div>
+      </Card>
+    </>
   );
 }
 

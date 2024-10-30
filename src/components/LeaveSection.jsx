@@ -92,7 +92,7 @@ const LeaveSection = ({
           type="date"
           name="leaveStart"
           label="Leave Start Date"
-          value={handleLeaveInputChange.leaveStart || ''}
+          // value={handleLeaveInputChange.leaveStart || ''}
           onChange={handleLeaveInputChange}
           required
         />
@@ -102,7 +102,7 @@ const LeaveSection = ({
           type="date"
           name="leaveEnd"
           label="Leave End Date"
-          value={handleLeaveInputChange.leaveEnd || ''}
+          // value={handleLeaveInputChange.leaveEnd || ''}
           onChange={handleLeaveInputChange}
           required
         />
