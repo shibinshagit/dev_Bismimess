@@ -9,7 +9,7 @@ import {
   TruckIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, UpcomingDelivery } from "@/pages/dashboard";
+import { Home, Settings, Tables, UpcomingDelivery } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 import Add from "./pages/dashboard/add";
 import Edit from "./pages/dashboard/edit";
@@ -19,9 +19,12 @@ import Marker from "./pages/attendance/marker";
 import Delivery from "./layouts/delivery";
 import Points from "./pages/delivery/points";
 import DeliveryLogin from "./pages/delivery/deliveryLogin";
-import { Notebook, Send } from "lucide-react";
+import { Notebook, Send, SettingsIcon } from "lucide-react";
 import { TodaysLeave } from "./pages/dashboard/TodaysLeave";
 import { ExpiredUsers } from "./pages/dashboard/ExpiredUsers";
+import { Attendance } from "./pages/dashboard/Attendence";
+import DeletedUsers from "./components/settings/DeletedUsers";
+import AccountPage from "./components/settings/Accounts";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -53,6 +56,21 @@ export const routes = [
         name: "Expiry",
         path: "/Expiry",
         element: <ExpiredUsers />,
+      }, {
+        icon: <SettingsIcon {...icon} />,
+        name: "settings",
+        path: "/settings",
+        element: <Settings/>,
+      }, {
+        icon: <ServerStackIcon {...icon} />,
+        name: "deletedUsers",
+        path: "/deleted-users",
+        element: <DeletedUsers />,
+      }, {
+        icon: <ServerStackIcon {...icon} />,
+        name: "Accounts",
+        path: "/accounts",
+        element: <AccountPage />,
       },
       // {
       //   icon: <HomeModernIcon {...icon} />,
@@ -117,10 +135,16 @@ export const routes = [
         icon: <ServerStackIcon {...icon} />,
         name: "marker",
         path: "/marker",
+        element: <Attendance />,
+      },
+      {
+        icon: <ServerStackIcon {...icon} />,
+        name: "live",
+        path: "/live",
         element: <Marker />,
       }
     ],
-  },                       
+  },                   
   {
     title: "delivery pages",
     layout: "delivery",

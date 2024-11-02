@@ -35,6 +35,7 @@ import {
 } from "@/context";
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
+import { MenuIcon } from "lucide-react";
 
 export function DashboardNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,13 +69,13 @@ export function DashboardNavbar() {
       <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
         <div className="capitalize">
           <Typography variant="h6" color="blue-gray">
-            {page === 'tables' ? 'costomer data' : page === 'add' ? '' : page === 'edit' ? '' :page === 'Expiry' ? '':page === 'leave' ? '': page  === 'delivery' ? '' : page}
+            {page === 'tables' ? 'costomer data' : page === 'add' ? '' : page === 'edit' ? '' : page === 'accounts' ? '': page === 'settings' ? '': page === 'deleted-users' ? '' :page === 'Expiry' ? '':page === 'leave' ? '': page  === 'delivery' ? '' : page}
           </Typography>
         </div>
         <div className="flex items-center">
         <div className="mr-auto md:mr-4 md:w-56"> 
           <Typography variant="h6" color="blue-gray">
-            {page === 'tables' ? '' : page === 'add' ? '': page === 'home' ? '' : page === 'edit' ? '' :page === 'Expiry' ? 'Expired Customers':page === 'leave' ? 'Leaves Today': page  === 'delivery' ? '' : page}
+            {page === 'tables' ? '' : page === 'add' ? '': page === 'home' ? '' : page === 'accounts' ? 'Transactions' : page === 'edit' ? '': page === 'deleted-users' ? 'Deleted Users' :page === 'Expiry' ? 'Expired Customers':page === 'leave' ? 'Leaves Today': page  === 'delivery' ? '' : page}
           </Typography>{page === 'tables' ? 
             <Input
       type="text"
@@ -120,7 +121,7 @@ export function DashboardNavbar() {
             color="blue-gray"
             onClick={() => setOpenConfigurator(dispatch, true)}
           >
-            <Cog6ToothIcon className="h-7 w-7 text-blue-gray-500" />
+            <MenuIcon className="h-7 w-7 text-blue-gray-500" />
           </IconButton>
         </div>
       </div>

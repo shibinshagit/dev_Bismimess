@@ -1,178 +1,130 @@
-import React, { useState, useEffect } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import {
-  Typography,
-  Card,
-  CardHeader,
-  CardBody,
-  IconButton,
-  Menu,
-  MenuHandler,
-  MenuList,
-  MenuItem,
-  Avatar,
-  Tooltip,
-  Progress,
-  Chip,
-} from "@material-tailwind/react";
-import {
-  EllipsisVerticalIcon,
-  ArrowUpIcon,
-  ChevronDownIcon,
-} from "@heroicons/react/24/outline";
-import { StatisticsCard } from "@/widgets/cards";
-import { StatisticsChart } from "@/widgets/charts";
-import {
-  statisticsCardsData,
-  fetchStatistics,
-  placeStatisticsData, // Add this to fetch place-based statistics
-} from "@/data";
-import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchCustomers } from "@/redux/reducers/authSlice";
-import { useNavigate } from "react-router-dom";
-import { useMaterialTailwindController } from "@/context";
-import { BaseUrl } from "@/constants/BaseUrl";
-import axios from "axios";
+// ... existing imports ...
+import { Switch } from "@material-tailwind/react";
 
-export function Home() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const customers = useSelector((state) => state.auth.customers);
-  const [date, setDate] = useState(new Date());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [controller] = useMaterialTailwindController();
-  const [users, setUsers] = useState(customers);
-  const [points, setPoints] = useState([]);
-  
-  const handleFilterChange = (selectedFilter) => {
-    setFilter(selectedFilter);
-  };
+function Add() {
+  // ... existing state variables ...
 
-  const filteredUsers = users;
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    point: null,
+    plan: [],
+    paymentStatus: false,
+    startDate: '',
+    endDate: '',
+    amount: '',
+    paymentMethod: '',
+    paymentId: '',
+    isVeg: false,
+  });
 
-  const fetchPoints = async () => {
-    try {
-      const response = await axios.get(`${BaseUrl}/api/points`); 
-      setPoints(response.data);
-    } catch (error) {
-      console.error("Error fetching points:", error);
-      setError("Error fetching points. Please try again later.");
+  // ... existing useEffect and functions ...
+
+  // Handle changes in the main form
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    if (name === 'phone' && value.length > 10) {
+      return;
+    }
+
+    if (name === 'startDate') {
+      // Existing logic...
+    } else if (name === 'point') {
+      // Existing logic...
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value,
+      });
     }
   };
 
-
-  // useEffect(() => {
-  //   const updateStatistics = async () => {
-  //     setLoading(true);
-  //     setError("");
-  //     try {
-  //       await fetchStatistics(date.toISOString().split("T")[0], customers);
-  //     } catch (err) {
-  //       setError("Error fetching statistics. Please try again later.");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   updateStatistics();
-  // }, [date]);
-  
-  useEffect(() => {
-    console.log('here',statisticsCardsData)
-    const updateStatistics = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        await fetchStatistics(date.toISOString().split("T")[0]);
-      } catch (err) {
-        setError("Error fetching statistics. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    updateStatistics();
-    fetchPoints();
-  }, [date]);
-
-
-  const handleUpdate = (user) => {
-    navigate(`/dashboard/edit`, { state: { user } });
-  };
-
-
-  const handleDateChange = (date) => {
-    setDate(date);
-  };
-
-
-  // if (loading) {
-  //   return <p>Loading...</p>;
-  // }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
+  // ... existing functions ...
 
   return (
-    <div className="mt-9">
-      <div className="mb-12 grid gap-y-3 gap-x-3 grid-cols-2">
-        {statisticsCardsData.map(({ icon, title, footer, ...rest }) => (
-          <StatisticsCard
-            key={title}
-            {...rest}
-            title={title}
-            icon={React.createElement(icon, {
-              className: "w-6 h-6 text-white",
-            })}
-            footer={
-              <Typography className="font-normal text-blue-gray-600">
-                <strong className={footer.color}>{footer.value}</strong>
-                &nbsp;{footer.label}
-              </Typography>
-            }
-          />
-        ))}
-      </div>
-<div className="flex">
-<Typography className="font-bold text-dark-600">
-           
-              
-              </Typography>
-{/* <DatePicker
-          selected={date}
-          onChange={handleDateChange}
-          dateFormat="yyyy-MM-dd"
-          className="form-control px-3 py-2 border border-blue-gray-300 rounded-md"
-          wrapperClassName=""
-        /> */}
-</div><Typography className="font-bold text-dark-600 mt-3 text-center">
-                <strong>Active Locations</strong>
-              
-              </Typography>
+    <div className="flex justify-center my-12">
+      <Card className="w-full max-w-lg">
+        {/* ... existing code ... */}
 
-<div className="mt-6 mb-16">
-        {points.map(({ _id, place, mode }) => (
-          <Card
-          key={_id} // Use _id as the key for uniqueness
-          className="mb-4 shadow-md"
-          onClick={() => navigate(`/dashboard/tables/${_id}`)} // Pass the id in the URL
-        >  
-                <div className="flex items-center justify-between p-4 cursor-pointer">
-                  <Typography variant="h6" color="blue-gray">
-                    {place} ({mode === "cluster" ? "Cluster" : "Single"})
-                  </Typography>
-                  {/* <ChevronDownIcon className="w-5 h-5 text-blue-gray-600" /> */}
+        <form onSubmit={handleSubmit}>
+          <CardBody className="p-6">
+            {/* ... existing inputs ... */}
+
+            {formData.paymentStatus && (
+              <>
+                {/* ... existing plan checkboxes and date inputs ... */}
+
+                {/* Amount Input */}
+                <div className="mb-4">
+                  <Input
+                    type="number"
+                    name="amount"
+                    label="Amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
-          
-          </Card>
-        ))}
-      </div>
+
+                {/* Payment Method Select */}
+                <div className="mb-4">
+                  <Select
+                    name="paymentMethod"
+                    label="Payment Method"
+                    value={formData.paymentMethod}
+                    onChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        paymentMethod: value,
+                        paymentId: "", // Reset paymentId when paymentMethod changes
+                      })
+                    }
+                    required
+                  >
+                    <Option value="Cash">Cash</Option>
+                    <Option value="Bank">Bank</Option>
+                    <Option value="Online">Online</Option>
+                  </Select>
+                </div>
+
+                {/* Payment ID Input */}
+                <div className="mb-4">
+                  <Input
+                    type="text"
+                    name="paymentId"
+                    label="Payment ID"
+                    value={formData.paymentId}
+                    onChange={handleChange}
+                    required={formData.paymentMethod !== "Cash"}
+                    disabled={formData.paymentMethod === "Cash"}
+                  />
+                </div>
+
+                {/* Veg Toggle */}
+                <div className="flex items-center mb-4">
+                  <Typography variant="small" className="mr-2">
+                    Veg
+                  </Typography>
+                  <Switch
+                    checked={formData.isVeg}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isVeg: e.target.checked,
+                      })
+                    }
+                  />
+                </div>
+              </>
+            )}
+          </CardBody>
+
+          {/* ... existing buttons ... */}
+        </form>
+      </Card>
     </div>
   );
 }
 
-export default Home;
+export default Add;

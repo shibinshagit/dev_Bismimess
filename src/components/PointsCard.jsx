@@ -51,7 +51,7 @@ const PointCard = ({ point }) => {
   return (
     <>
       <style>{shineKeyframes}</style>
-      <div className={`bg-white shadow-lg rounded-lg p-6 mb-6 border-l-4 ${totalLeaveToday > 0 ? "border-red-500" : "border-green-500"}`}>
+      <div className={`bg-white shadow-lg rounded-lg p-3 mb-6 border-l-4 ${totalLeaveToday > 0 ? "border-red-500" : "border-green-500"}`}>
         <div className="flex items-center justify-between mb-4">
           <Typography variant="h5" className="font-semibold text-gray-800">
             {place}
@@ -66,21 +66,19 @@ const PointCard = ({ point }) => {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <Typography variant="small" color="gray" className="font-semibold">
-              Total Users:
+              Total Users: {totalUsers}
             </Typography>
-            <Typography variant="h6" className="font-bold text-gray-800">
-              {totalUsers}
-            </Typography>
+          
           </div>
           <div>
-            <Typography variant="small" color="gray" className="font-semibold">
-              Total Leave Today:
+            <Typography variant="small" color="gray" className={`font-bold ${totalLeaveToday > 0 ? "text-red-600" : "text-green-600"}`}>
+               Leave Today : {totalLeaveToday}
             </Typography>
             <Typography
               variant="h6"
-              className={`font-bold ${totalLeaveToday > 0 ? "text-red-600" : "text-green-600"}`}
+              
             >
-              {totalLeaveToday}
+              
             </Typography>
           </div>
         </div>

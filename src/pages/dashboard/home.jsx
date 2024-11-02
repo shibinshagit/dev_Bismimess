@@ -26,6 +26,7 @@ import axios from "axios";
 import { Card, CardHeader, CardBody } from "@material-tailwind/react";
 import {  XCircleIcon } from "@heroicons/react/24/solid";
 import { StatisticsCard } from "@/widgets/cards";
+import { LeafIcon } from "lucide-react";
 
 
 const PointStatisticsCard  = ({ point }) => {
@@ -36,9 +37,12 @@ const PointStatisticsCard  = ({ point }) => {
     totalCustomers,
     todaysActiveCustomers,
     todaysLeave,
+    totalExpired,
     totalBreakfast,
     totalLunch,
     totalDinner,
+    totalVegNeededToday,
+    totalVeg
   } = point;
 
   return (
@@ -67,6 +71,7 @@ const PointStatisticsCard  = ({ point }) => {
         <div className="text-sm text-gray-700">
           <span className="font-semibold">Total:</span> {totalCustomers} |{" "}
           <span className="font-semibold">Active:</span> {todaysActiveCustomers} |{" "}
+          <span className="font-semibold">Expired:</span> {totalExpired} |{" "}
           <span className="font-semibold">Leave:</span> 
           <span className={`${todaysLeave > 0 ? "text-red-600" : "text-gray-700"}`}>
             {todaysLeave}
@@ -81,6 +86,14 @@ const PointStatisticsCard  = ({ point }) => {
           </span>
           <span className="bg-yellow-100 text-orange-600 px-2 py-1 rounded text-xs font-semibold">
             D: {totalDinner}
+          </span>
+        </div>
+          {/* New Veg Information */}
+          <div className="mt-2">
+          <span className=" text-green-800 px-2 py-1 rounded text-xs font-semibold flex items-center">
+            {/* You can use an icon if you prefer */}
+            <LeafIcon className="w-4 h-4 mr-1" />
+            Veg: {totalVegNeededToday?totalVegNeededToday:''}{totalVeg?totalVeg:''}
           </span>
         </div>
       </section>
@@ -166,7 +179,7 @@ export function Home() {
           value={points.reduce((acc, point) => acc + point.totalCustomers, 0)}
           icon={<UserGroupIcon />}
           color="blue"
-        />
+        />{console.log('me:',points)}
         <StatisticsCard
           title="Active"
           value={points.reduce((acc, point) => acc + point.todaysActiveCustomers, 0)}
@@ -198,16 +211,6 @@ export function Home() {
           color="blue"
         />
       </div>
-
-      {/* Date Picker (Optional) */}
-      {/* <div className="flex justify-center  w-full">
-        <DatePicker
-          selected={date}
-          onChange={handleDateChange}
-          dateFormat="yyyy-MM-dd"
-          className="px-4 py-2 border border-blue-gray-300 rounded-md"
-        />
-      </div> */}
 
       {/* Points with Statistics */}
       <Typography className="font-bold text-dark-600 text-center">

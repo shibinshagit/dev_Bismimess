@@ -134,6 +134,7 @@ export function Tables() {
       try {
         const response = await axios.get(`${BaseUrl}/api/users/${id}`);
         setUsers(response.data);
+        console.log('res Data:',response.data);
       } catch (err) {
         setError('Error fetching users.');
       } finally {

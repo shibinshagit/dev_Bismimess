@@ -14,13 +14,16 @@ import {
   DialogBody,
   DialogFooter,
   Option,
-  Select
+  Select,
+  Switch
 } from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
 import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { PlusIcon } from 'lucide-react';
 
 function Add() {
+  const [images, setImages] = useState([]);           // Store selected images
+  const [imagePreviews, setImagePreviews] = useState([]); // Store image previews
   const [pointsList, setPointsList] = useState([]);
   const [openPointModal, setOpenPointModal] = useState(false);
   const [newPoint, setNewPoint] = useState({ place: '', mode: 'single' });
@@ -28,11 +31,15 @@ function Add() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    point: null, // Changed to store point ID
+    point: null,
     plan: [],
     paymentStatus: false,
     startDate: '',
     endDate: '',
+    amount: '',
+    paymentMethod: '',
+    paymentId: '',
+    isVeg: false,
   });
   const [pointInputValue, setPointInputValue] = useState(''); // New state for point input value
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -58,6 +65,22 @@ function Add() {
       [name]: value
     }));
   };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+  
+    if (files.length > 3) {
+      alert('You can only upload a maximum of 3 images.');
+      return;
+    }
+  
+    setImages(files);
+  
+    // Generate image previews
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+  
 
   const handleSelectChange = (value) => {
     setNewPoint((prevPoint) => ({
@@ -141,7 +164,7 @@ function Add() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.point) {
@@ -151,35 +174,48 @@ function Add() {
       return;
     }
 
-    axios.post(`${BaseUrl}/api/postorder`, formData)
-      .then(response => {
-        if (response.status === 200) {
-          dispatch(fetchCustomers());
-          alert('User added successfully');
-          setFormData({
-            name: '',
-            phone: '',
-            point: null,
-            plan: [],
-            paymentStatus: false,
-            startDate: '',
-            endDate: ''
-          });
-          setPointInputValue('');
-        } else {
-          alert(response.data.message);
-        }
-      })
-      .catch(error => {
-        if (error.response && error.response.status === 400) {
-          alert('Phone number already exists');
-        } else if (error.response && error.response.status === 204) {
-          alert('Fill all order data');
-        } else {
-          console.error('There was an error adding the user:', error);
-          alert('Error adding user');
-        }
+    // if (images.length === 0) {
+    //   alert('Please upload at least one image.');
+    //   return;
+    // }
+  
+    try {
+      const data = new FormData();
+  
+      // Append form data
+      data.append('name', formData.name);
+      data.append('phone', formData.phone);
+      data.append('point', formData.point);
+      data.append('paymentStatus', formData.paymentStatus);
+      data.append('startDate', formData.startDate);
+      data.append('endDate', formData.endDate);
+      data.append('amount', formData.amount);
+      data.append('paymentMethod', formData.paymentMethod);
+      data.append('paymentId', formData.paymentId);
+      data.append('isVeg', formData.isVeg);
+  
+      // Append plan array
+      formData.plan.forEach((item) => data.append('plan[]', item));
+  
+      // Append images
+      images.forEach((image) => {
+        data.append('images', image);
       });
+  
+      const response = await axios.post(`${BaseUrl}/api/postOrder`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      if (response.status === 200) {
+        alert('User added successfully');
+      } else {
+        alert('error');
+      }
+    } catch (error) {
+      console.error('There was an error adding the user:', error);
+    }
   };
 
   const handleSuggestionClick = (point) => {
@@ -306,7 +342,30 @@ function Add() {
                 <PlusIcon className="w-5 h-5" /> New Point
               </Button>
             </div>
-
+  {/* Image Upload */}
+  <div className="mb-4">
+      <Typography variant="small" className="font-semibold mb-2">
+        Upload Drop-off Area Images (Maximum 3)
+      </Typography>
+      <Input
+        type="file"
+        name="images"
+        multiple
+        accept="image/*"
+        onChange={handleImageChange}
+      />
+      {/* Image Previews */}
+      <div className="flex mt-2 space-x-2">
+        {imagePreviews.map((src, index) => (
+          <img
+            key={index}
+            src={src}
+            alt={`Preview ${index + 1}`}
+            className="w-24 h-24 object-cover rounded"
+          />
+        ))}
+      </div>
+    </div>
             <div className="mb-4">
               <Checkbox
                 name="paymentStatus"
@@ -364,6 +423,66 @@ function Add() {
                     value={formData.endDate}
                     readOnly
                     required
+                  />
+                </div>
+                <div className="mb-4">
+                  <Input
+                    type="number"
+                    name="amount"
+                    label="Amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Payment Method Select */}
+                <div className="mb-4">
+                  <Select
+                    name="paymentMethod"
+                    label="Payment Method"
+                    value={formData.paymentMethod}
+                    onChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        paymentMethod: value,
+                        paymentId: "", // Reset paymentId when paymentMethod changes
+                      })
+                    }
+                    required
+                  >
+                    <Option value="Cash">Cash</Option>
+                    <Option value="Bank">Bank</Option>
+                    <Option value="Online">Online</Option>
+                  </Select>
+                </div>
+
+                {/* Payment ID Input */}
+                <div className="mb-4">
+                  <Input
+                    type="text"
+                    name="paymentId"
+                    label="Payment ID"
+                    value={formData.paymentId}
+                    onChange={handleChange}
+                    required={formData.paymentMethod !== "Cash"}
+                    disabled={formData.paymentMethod === "Cash"}
+                  />
+                </div>
+
+                {/* Veg Toggle */}
+                <div className="flex items-center mb-4">
+                  <Typography variant="small" className="mr-2">
+                    Veg
+                  </Typography>
+                  <Switch
+                    checked={formData.isVeg}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isVeg: e.target.checked,
+                      })
+                    }
                   />
                 </div>
               </>

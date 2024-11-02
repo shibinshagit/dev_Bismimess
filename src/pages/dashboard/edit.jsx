@@ -7,7 +7,7 @@ import { PlusIcon } from 'lucide-react';
 import { 
   Card, CardHeader, CardBody, Typography, Input, Button, Checkbox, 
   List, ListItem, Dialog, DialogHeader, DialogBody, DialogFooter, 
-  Option, Select 
+  Option, Select ,Switch
 } from "@material-tailwind/react";
 import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { BaseUrl } from '../../constants/BaseUrl';
@@ -98,6 +98,10 @@ function Edit() {
   const dispatch = useDispatch();
 
   // State Variables
+  const [images, setImages] = useState([]); // For new images selected by the user
+  const [imagePreviews, setImagePreviews] = useState([]); // Previews of new images
+  const [existingImages, setExistingImages] = useState([]); // URLs of existing images
+  const [imagesToRemove, setImagesToRemove] = useState([]); // Images marked for removal
   const [user, setUser] = useState(location.state.user || {});
   const [isEditing, setIsEditing] = useState(false);
   const [showLeaveSection, setShowLeaveSection] = useState(false);
@@ -120,6 +124,10 @@ function Edit() {
     paymentStatus: false,
     startDate: '',
     endDate: '',
+    amount: '',
+    paymentMethod: '',
+    paymentId: '',
+    isVeg: false,
   });
 
   // Effects
@@ -151,7 +159,10 @@ function Edit() {
   const fetchUserById = async (userId) => {
     try {
       const response = await axios.get(`${BaseUrl}/api/user/${userId}`);
-      setUser(response.data); 
+      setUser(response.data);
+      // Set existing images
+      console.log(response)
+      setExistingImages(response.data.images || []);
     } catch (err) {
       console.error('Error fetching user:', err);
     }
@@ -177,16 +188,43 @@ function Edit() {
       paymentStatus: user.paymentStatus || false,
       startDate: formatDate(latestOrder.orderStart) || '',
       endDate: formatDate(latestOrder.orderEnd) || '',
+      amount: latestOrder.amount || '',
+      paymentMethod: latestOrder.paymentMethod || '',
+      paymentId: latestOrder.paymentId || '',
+      isVeg: latestOrder.isVeg || false,
     });
     setPointInputValue(userPoint ? userPoint.place : '');
-    if (latestOrder.leave) {
-      // Initialize leaveFormData if needed
-      // For simplicity, we keep it empty as LeaveSection handles it
-    }
   };
 
   // Handlers
-
+  const handleRemoveExistingImage = (src) => {
+    setImagesToRemove([...imagesToRemove, src]);
+    setExistingImages(existingImages.filter((image) => image !== src));
+  };  
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+  
+    if (files.length + existingImages.length > 3) {
+      alert('You can only have a maximum of 3 images.');
+      return;
+    }
+  
+    setImages(files);
+  
+    // Generate image previews
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+  
+  const handleRemoveNewImage = (index) => {
+    const updatedImages = [...images];
+    const updatedPreviews = [...imagePreviews];
+    updatedImages.splice(index, 1);
+    updatedPreviews.splice(index, 1);
+    setImages(updatedImages);
+    setImagePreviews(updatedPreviews);
+  };
+  
   // Handle changes in the Add New Point form
   const handleNewPointChange = (e) => {
     const { name, value } = e.target;
@@ -326,22 +364,61 @@ function Edit() {
       return;
     }
 
+    // if (existingImages.length + images.length === 0) {
+    //   alert('Please have at least one image.');
+    //   return;
+    // }
+  
     try {
-      const response = await axios.put(`${BaseUrl}/api/updateUser/${user._id}`, formData);
+      const data = new FormData();
+  
+      // Append form data
+      data.append('name', formData.name);
+      data.append('phone', formData.phone);
+      data.append('point', formData.point);
+      data.append('paymentStatus', formData.paymentStatus);
+      data.append('startDate', formData.startDate);
+      data.append('endDate', formData.endDate);
+      data.append('amount', formData.amount);
+      data.append('paymentMethod', formData.paymentMethod);
+      data.append('paymentId', formData.paymentId);
+      data.append('isVeg', formData.isVeg);
+  
+      // Append plan array
+      formData.plan.forEach((item) => data.append('plan[]', item));
+  
+
+     // Append images to remove
+imagesToRemove.forEach((url) => {
+  if (url) {
+    data.append('imagesToRemove', url);
+  }
+});
+
+  
+      // Append new images
+      images.forEach((image) => {
+        data.append('images', image);
+      });
+  
+      const response = await axios.put(`${BaseUrl}/api/updateUser/${user._id}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
       if (response.status === 200) {
-        dispatch(fetchCustomers());
+        // ... handle success ...
         Swal.fire('Success', 'User updated successfully', 'success');
         navigate(-1); // Go back to the previous page
-      } else if (response.status === 204) {
-        Swal.fire('Warning', 'Fill all order data', 'warning');
       } else {
         Swal.fire('Error', response.data.message, 'error');
       }
     } catch (error) {
+      // ... handle error ...
       if (error.response && error.response.status === 400) {
-        Swal.fire('Error', 'Phone number already exists', 'error');
+        Swal.fire('Error', error.response.data.message, 'error');
       } else {
-        console.error('There was an error updating the user:', error);
         Swal.fire('Error', 'Error updating user', 'error');
       }
     }
@@ -429,8 +506,8 @@ function Edit() {
     e.preventDefault();
 
     Swal.fire({
-      title: 'Select an option',
-      showDenyButton: true,
+      title: 'Trash user',
+      showDenyButton: false,
       showCancelButton: true,
       confirmButtonText: 'Delete',
       denyButtonText: 'Block',
@@ -438,7 +515,7 @@ function Edit() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`${BaseUrl}/api/deleteUser/${user._id}`);
+          const response = await axios.delete(`${BaseUrl}/api/users/${user._id}`);
           if (response.status === 200) {
             dispatch(fetchCustomers());
             Swal.fire('Deleted!', 'User has been deleted.', 'success');
@@ -515,6 +592,37 @@ function Edit() {
 
         <form onSubmit={handleSubmit}>
           <CardBody className="p-6">
+            {console.log(existingImages)}
+{/* Existing Images */}
+{existingImages.length > 0 && (
+  <div className="mb-4">
+    <Typography variant="small" className="font-semibold mb-2">
+      Existing Images
+    </Typography>
+    <div className="flex mt-2 space-x-2">
+      {existingImages.map((src, index) => (
+        <div key={index} className="relative">
+          <img
+            src={src}
+            alt={`Existing Image ${index + 1}`}
+            className="w-24 h-24 object-cover rounded"
+          />
+          {isEditing && (
+            <button
+              type="button"
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+              onClick={() => handleRemoveExistingImage(src)}
+            >
+              &times;
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+
             {/* Name Input */}
             <div className="mb-4">
               <Input
@@ -582,12 +690,45 @@ function Edit() {
                 </Button>
               </div>
             )}
+{/* Image Upload */}
+<div className="mb-4">
+  <Typography variant="small" className="font-semibold mb-2">
+    {existingImages.length > 0 ? 'Add More Images' : 'Upload Images (Maximum 3)'}
+  </Typography>
+  <Input
+    type="file"
+    name="images"
+    multiple
+    accept="image/*"
+    onChange={handleImageChange}
+    disabled={!isEditing}
+  />
+  {/* Image Previews */}
+  <div className="flex mt-2 space-x-2">
+    {imagePreviews.map((src, index) => (
+      <div key={index} className="relative">
+        <img
+          src={src}
+          alt={`New Image Preview ${index + 1}`}
+          className="w-24 h-24 object-cover rounded"
+        />
+        <button
+          type="button"
+          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+          onClick={() => handleRemoveNewImage(index)}
+        >
+          &times;
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
 
             {/* Payment Status Checkbox */}
             <div className="mb-4">
               <Checkbox
                 name="paymentStatus"
-                label="Paid"
+                label="Show Order"
                 checked={formData.paymentStatus}
                 onChange={handleChange}
                 disabled={!isEditing}
@@ -628,6 +769,70 @@ function Edit() {
                     readOnly
                     required
                     disabled
+                  />
+                </div>
+                 {/* Amount Input */}
+                 <div className="mb-4">
+                  <Input
+                    type="number"
+                    name="amount"
+                    label="Amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                {/* Payment Method Select */}
+                <div className="mb-4">
+                  <Select
+                    name="paymentMethod"
+                    label="Payment Method"
+                    value={formData.paymentMethod}
+                    onChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        paymentMethod: value,
+                        paymentId: "", // Reset paymentId when paymentMethod changes
+                      })
+                    }
+                    required
+                    disabled={!isEditing}
+                  >
+                    <Option value="Cash">Cash</Option>
+                    <Option value="Bank">Bank</Option>
+                    <Option value="Online">Online</Option>
+                  </Select>
+                </div>
+
+                {/* Payment ID Input */}
+                <div className="mb-4">
+                  <Input
+                    type="text"
+                    name="paymentId"
+                    label="Payment ID"
+                    value={formData.paymentId}
+                    onChange={handleChange}
+                    required={formData.paymentMethod !== "Cash"}
+                    disabled={formData.paymentMethod === "Cash" || !isEditing}
+                  />
+                </div>
+
+                {/* Veg Toggle */}
+                <div className="flex items-center mb-4">
+                  <Typography variant="small" className="mr-2">
+                    Veg
+                  </Typography>
+                  <Switch
+                    checked={formData.isVeg}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isVeg: e.target.checked,
+                      })
+                    }
+                    disabled={!isEditing}
                   />
                 </div>
               </>

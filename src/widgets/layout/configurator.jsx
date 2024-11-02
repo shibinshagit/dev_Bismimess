@@ -89,10 +89,21 @@ const zone ='Brototype'
     //   status: user.latestOrder?.status || 'N/A'
     // }));
     // dispatch(attREf({ att: filteredData }));
+    navigate('/attendance/live');
+  };
+  const handleAttendanceLive = async () => {
+    // const att = await fetchAttendanceList(zone);
+    // const filteredData = att.map(user => ({
+    //   name: user.name,
+    //   phone: user.phone,
+    //   status: user.latestOrder?.status || 'N/A'
+    // }));
+    // dispatch(attREf({ att: filteredData }));
     navigate('/attendance/marker');
   };
+
   const handleDelivery = async () => {
-    navigate('/delivery/login');
+    window.location.href = 'https://dev-delivery-beta.vercel.app/';
   };
   
 
@@ -134,9 +145,9 @@ const zone ='Brototype'
          
             <Button
               variant={sidenavType === "transparent" ? "gradient" : "outlined"}
-              onClick={() => setSidenavType(dispatcher, "transparent")}
+              onClick={handleAttendanceLive}
             >
-             Add admin
+             Live
             </Button>
             <Button
   variant={sidenavType === "white" ? "gradient" : "outlined"}
