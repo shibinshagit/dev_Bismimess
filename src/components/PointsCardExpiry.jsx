@@ -324,8 +324,8 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
 
       {/* Renew Order Dialog */}
       <Dialog open={openRenewDialog} handler={setOpenRenewDialog} size="lg">
-        <DialogHeader>Renew Order for {user.name}</DialogHeader>
-        <DialogBody divider>
+    <DialogHeader>Renew Order for {user.name}</DialogHeader>
+    <DialogBody divider className="overflow-y-auto max-h-96">
           <div className="grid grid-cols-1 gap-4">
             <div>
               <Checkbox
@@ -339,7 +339,7 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
               <Typography variant="small" className="font-semibold mb-2">
                 Plan
               </Typography>
-              <div className="flex flex-col gap-2">
+              <div className="flex gap-1">
                 <Checkbox
                   name="plan"
                   label="Breakfast"
