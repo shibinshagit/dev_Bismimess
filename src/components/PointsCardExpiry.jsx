@@ -255,7 +255,7 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
       }
     } catch (error) {
       console.error("Error renewing order:", error);
-      alert("An error occurred while renewing the order.");
+      alert(error.response.data.message);
     } finally {
       setIsProcessing(false);
     }

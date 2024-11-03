@@ -318,7 +318,7 @@ export function Tables() {
                   ? 'blue-gray'
                   : status === 'leave'
                   ? 'yellow'
-                  : new Date(orderEnd).getTime() - new Date().getTime() <= 3 * 24 * 60 * 60 * 1000
+                  : new Date(orderEnd).getTime() - new Date().getTime() <= 1 * 24 * 60 * 60 * 1000
                   ? 'red'
                   : status === 'active'
                   ? 'green'

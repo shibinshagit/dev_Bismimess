@@ -211,10 +211,11 @@ function Add() {
       if (response.status === 200) {
         alert('User added successfully');
       } else {
-        alert('error');
+        alert(response.data.message);
       }
     } catch (error) {
       console.error('There was an error adding the user:', error);
+      alert(error.response.data.message)
     }
   };
 
