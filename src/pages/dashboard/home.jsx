@@ -162,13 +162,13 @@ export function Home() {
     setDate(date);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <Spinner color="blue" />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen bg-gray-100">
+  //       <Spinner color="blue" />
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (

@@ -84,7 +84,7 @@ export function DashboardNavbar() {
                   color="blue-gray"
                   onClick={() => navigate("add")}
                 >
-                  <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" />
+                  <PlusCircleIcon  onClick={() => navigate("add")} className="h-7 w-7 text-blue-gray-500" />
                 </IconButton>
               </MenuHandler>
             </Menu>
@@ -95,7 +95,7 @@ export function DashboardNavbar() {
                 <IconButton
                   variant="text"
                   color="blue-gray"
-                  onClick={() => navigate("notify")}
+                  onClick={() => navigate("/add")}
                 >
                   <Bell className="h-6 w-6 text-blue-gray-500" />
                 </IconButton>
