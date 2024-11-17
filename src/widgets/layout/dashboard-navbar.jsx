@@ -1,121 +1,110 @@
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Navbar,
   Typography,
-  Button,
-  IconButton,
-  Breadcrumbs,
   Input,
   Menu,
   MenuHandler,
+  IconButton,
   MenuList,
-  MenuItem,
-  Avatar,
-  Dialog,
-  DialogHeader,
-  DialogBody,
-  Select,
-  DialogFooter,
 } from "@material-tailwind/react";
 import {
-  UserCircleIcon,
-  Cog6ToothIcon,
-  BellIcon,
-  ClockIcon,
-  CreditCardIcon,
-  Bars3Icon,
   PlusCircleIcon,
 } from "@heroicons/react/24/solid";
+import { Bell, MenuIcon } from "lucide-react";
 import {
   useMaterialTailwindController,
   setOpenConfigurator,
-  setOpenSidenav,
   setSearchTerm,
   setOpenDeliveryForm,
 } from "@/context";
-import { useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import { MenuIcon } from "lucide-react";
+import { useState } from "react";
 
 export function DashboardNavbar() {
   const [isOpen, setIsOpen] = useState(false);
-
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar } = controller;
   const navigate = useNavigate();
-  const { pathname, searchTerm } = useLocation();
+  const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
 
-
   const handleSearch = (event) => {
-    setSearchTerm(dispatch, event.target.value);
+    const value = event.target.value;
+    setSearchTerm(dispatch, value);
+
+    if (value.startsWith("/") && !pathname.includes("globalSearch")) {
+      navigate("Global");
+    }
   };
 
+  const pageConfig = {
+    tables: { title: "Customer Data", showSearch: true, addButton: true },
+    home: { showSearch: true, notifications: true, addButton: true },
+    settings: { showSearch: true },
+    Global: { showSearch: true },
+    accounts: { title: "Transactions" },
+    "deleted-users": { title: "Deleted Users" },
+    Expiry: { title: "Expired Customers", showSearch: true },
+    leave: { title: "Leaves Today", showSearch: true },
+    delivery:{ addButton: true },
+    notify: {title:" ", addButton: true },
+  };
 
-
-
+  const { title, showSearch, addButton, notifications } = pageConfig[page] || {};
 
   return (
     <Navbar
-      color={fixedNavbar ? "white" : "transparent"}
+      color="white"
       className={`rounded-xl transition-all ${
         fixedNavbar
           ? "sticky top-0 z-40 py-3 shadow-md shadow-blue-gray-500/5"
-          : "px-0 py-1"
-      } `}
-      fullWidth
+          : "sticky top-0 px-0 py-1 z-40 p-3"
+      }`}
       blurred={fixedNavbar}
     >
       <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
-        <div className="capitalize">
-          <Typography variant="h6" color="blue-gray">
-            {page === 'tables' ? 'costomer data' : page === 'add' ? '' : page === 'edit' ? '' : page === 'accounts' ? '': page === 'settings' ? '': page === 'deleted-users' ? '' :page === 'Expiry' ? '':page === 'leave' ? '': page  === 'delivery' ? '' : page}
-          </Typography>
-        </div>
+        <Typography variant="h6" color="blue-gray" className="capitalize">
+          {title || page}
+        </Typography>
+
         <div className="flex items-center">
-        <div className="mr-auto md:mr-4 md:w-56"> 
-          <Typography variant="h6" color="blue-gray">
-            {page === 'tables' ? '' : page === 'add' ? '': page === 'home' ? '' : page === 'accounts' ? 'Transactions' : page === 'edit' ? '': page === 'deleted-users' ? 'Deleted Users' :page === 'Expiry' ? 'Expired Customers':page === 'leave' ? 'Leaves Today': page  === 'delivery' ? '' : page}
-          </Typography>{page === 'tables' ? 
+          {showSearch && (
             <Input
-      type="text"
-      label="Search" 
-      value={searchTerm}
-      onChange={handleSearch}
-      className="bg-white"
-    />
-          : page === "home" ? <DatePicker
-          // selected={date}
-          // onChange={handleDateChange}
-          dateFormat="yyyy-MM-dd"
-          className="form-control px-3 py-2 border border-blue-gray-300 rounded-md"
-          wrapperClassName=""
-        /> : ''}</div> 
-          {page === 'tables' ? <Menu>
-            <MenuHandler>
-              <IconButton variant="text" color="blue-gray">
-                <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" onClick={() => navigate('add')}/>
-              </IconButton>
-            </MenuHandler>
-          </Menu>:page === 'Expiry' ? '':page === 'leave' ? ''
-           : page === 'add' ? '' : page === 'edit' ? '' : page === 'home' ?  <Menu>
-           <MenuHandler>
-             <IconButton variant="text" color="blue-gray">
-               <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" onClick={() => navigate('add')}/>
-             </IconButton>
-           </MenuHandler>
-         </Menu> : page  === 'delivery' ? 
-           <Menu>
-            <MenuHandler>
-              <IconButton variant="text" color="blue-gray">
-                <PlusCircleIcon className="h-7 w-7 text-blue-gray-500"  onClick={() => {
-        setIsOpen(!isOpen);
-        setOpenDeliveryForm(dispatch, !isOpen);
-      }}/>
-              </IconButton>
-            </MenuHandler>
-          </Menu>
-           : page}
+              type="text"
+              label="Search"
+              onChange={handleSearch}
+              className="bg-white md:mr-4 md:w-56"
+            />
+          )}
+          {addButton && (
+            <Menu>
+              <MenuHandler>
+                <IconButton
+                  variant="text"
+                  color="blue-gray"
+                  onClick={() => navigate("add")}
+                >
+                  <PlusCircleIcon className="h-7 w-7 text-blue-gray-500" />
+                </IconButton>
+              </MenuHandler>
+            </Menu>
+          )}
+          {notifications && (
+            <Menu>
+              <MenuHandler>
+                <IconButton
+                  variant="text"
+                  color="blue-gray"
+                  onClick={() => navigate("notify")}
+                >
+                  <Bell className="h-6 w-6 text-blue-gray-500" />
+                </IconButton>
+              </MenuHandler>
+              <MenuList>
+                {/* Add dropdown menu items here if necessary */}
+              </MenuList>
+            </Menu>
+          )}
           <IconButton
             variant="text"
             color="blue-gray"
@@ -125,39 +114,6 @@ export function DashboardNavbar() {
           </IconButton>
         </div>
       </div>
-      <Dialog open={false} handler={false} size="sm">
-          <DialogHeader>Add New Point</DialogHeader>
-          <DialogBody className="flex flex-col gap-4">
-    <Input
-      label="Place"
-      name="place"
-     
-    />
-    <Select
-      label="Mode"
-     
-    >
-      <Option value="single">Single</Option>
-      <Option value="cluster">Cluster</Option>
-    </Select>
-  </DialogBody>
-          <DialogFooter>
-            <Button
-              variant="text"
-              color="red"
-              
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="filled"
-              color="green"
-           
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </Dialog>
     </Navbar>
   );
 }

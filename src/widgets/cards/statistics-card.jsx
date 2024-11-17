@@ -5,6 +5,7 @@ import {
   CardFooter,
   Typography,
 } from "@material-tailwind/react";
+import { LeafIcon } from "lucide-react";
 import PropTypes from "prop-types";
 
 const styles = {
@@ -23,7 +24,7 @@ const shineKeyframes = `
 }
 `;
 
-export function StatisticsCard({ color, icon, title, value, footer }) {
+export function StatisticsCard({ color, icon, title, value, veg, footer }) {
   return (
     <>
       <style>{shineKeyframes}</style>
@@ -38,6 +39,13 @@ export function StatisticsCard({ color, icon, title, value, footer }) {
           <Typography variant="h4" color="blue-gray" className="text-center font-semibold relative z-10">
             {value}
           </Typography>
+        </div>
+        <div className="mt-2">
+          <span className=" text-green-800 px-2 py-1 rounded text-xs font-semibold flex items-center">
+            {/* You can use an icon if you prefer */}
+            <LeafIcon className="w-4 h-4 mr-1" />
+            Veg: {veg?veg:'0'}
+          </span>
         </div>
       </Card>
     </>

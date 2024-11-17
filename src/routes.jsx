@@ -25,6 +25,9 @@ import { ExpiredUsers } from "./pages/dashboard/ExpiredUsers";
 import { Attendance } from "./pages/dashboard/Attendence";
 import DeletedUsers from "./components/settings/DeletedUsers";
 import AccountPage from "./components/settings/Accounts";
+import NewOrders from "./pages/dashboard/Notify";
+import CreateCategory from "./pages/dashboard/CreateCategory";
+import GlobalSearch from "./pages/dashboard/GlobalSearch";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -83,6 +86,22 @@ export const routes = [
         name: "add",
         path: "/add",
         element: <Add />,
+      },
+      {
+        icon: <UserCircleIcon {...icon} />,
+        name: "CreateCategory",
+        path: "/CreateCategory",
+        element: <CreateCategory />,
+      },{
+        icon: <UserCircleIcon {...icon} />,
+        name: "Notify",
+        path: "/notify",
+        element: <NewOrders />,
+      },
+     { icon: <UserCircleIcon {...icon} />,
+        name: "Search",
+        path: "/Global",
+        element: <GlobalSearch />,
       },
       {
         icon: <UserGroupIcon {...icon} />,

@@ -75,6 +75,7 @@ const PlanCheckboxes = ({ plan, handlePlanChange, isEditing }) => (
     <div className="flex flex-col gap-2">
       {['Breakfast', 'Lunch', 'Dinner'].map((meal, index) => {
         const value = meal.charAt(0).toUpperCase(); // 'B', 'L', 'D'
+        console.log('plan:',plan)
         return (
           <Checkbox
             key={index}
@@ -91,7 +92,6 @@ const PlanCheckboxes = ({ plan, handlePlanChange, isEditing }) => (
   </div>
 );
 /* Main Edit Component */
-
 function Edit() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -105,6 +105,13 @@ function Edit() {
   const [user, setUser] = useState(location.state.user || {});
   const [isEditing, setIsEditing] = useState(false);
   const [showLeaveSection, setShowLeaveSection] = useState(false);
+
+const [userType, setUserType] = useState('individual'); // 'individual' or 'group'
+const [groupsList, setGroupsList] = useState([]); // All groups fetched from the backend
+const [filteredGroups, setFilteredGroups] = useState([]); // Groups filtered by selected point
+const [selectedGroup, setSelectedGroup] = useState(''); // Selected group ID
+const [dropdownOpen, setDropdownOpen] = useState(false);
+
 
   const [pointsList, setPointsList] = useState([]);
   const [openPointModal, setOpenPointModal] = useState(false);
@@ -121,7 +128,7 @@ function Edit() {
     phone: '',
     point: null, // Store point ID
     plan: [],
-    paymentStatus: false,
+    paymentStatus: 'pending', // Default to 'pending'
     startDate: '',
     endDate: '',
     amount: '',
@@ -133,6 +140,7 @@ function Edit() {
   // Effects
   useEffect(() => {
     fetchPoints();
+    fetchGroups();
     if (user._id) {
       fetchUserById(user._id);
     }
@@ -154,14 +162,26 @@ function Edit() {
       console.error("Error fetching points:", error);
     }
   };
+  // Fetch groups
+  const fetchGroups = async () => {
+    try {
+      const response = await axios.get(`${BaseUrl}/api/groups`);
+      setGroupsList(response.data);
+      console.log('f',response.data);
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+      Swal.fire('Error', 'Failed to fetch groups.', 'error');
+    }
+  };
+  
 
   // Fetch User by ID
   const fetchUserById = async (userId) => {
     try {
       const response = await axios.get(`${BaseUrl}/api/user/${userId}`);
       setUser(response.data);
+      console.log(response.data);
       // Set existing images
-      console.log(response)
       setExistingImages(response.data.images || []);
     } catch (err) {
       console.error('Error fetching user:', err);
@@ -170,31 +190,52 @@ function Edit() {
 
   // Initialize Form Data
   const initializeFormData = () => {
-    const formatDate = (dateString) => {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return date.toISOString().split('T')[0];
-    };
-    const latestOrder = user.latestOrder || {};
-
-    // Find the user's point from pointsList
-    const userPoint = pointsList.find(point => point._id === user.point);
-
-    setFormData({
-      name: user.name || '',
-      phone: user.phone || '',
-      point: user.point || null,
-      plan: latestOrder.plan || [],
-      paymentStatus: user.paymentStatus || false,
-      startDate: formatDate(latestOrder.orderStart) || '',
-      endDate: formatDate(latestOrder.orderEnd) || '',
-      amount: latestOrder.amount || '',
-      paymentMethod: latestOrder.paymentMethod || '',
-      paymentId: latestOrder.paymentId || '',
-      isVeg: latestOrder.isVeg || false,
-    });
-    setPointInputValue(userPoint ? userPoint.place : '');
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
   };
+  const latestOrder = user.latestOrder || {};
+
+  // Find the user's point from pointsList
+  const userPoint = pointsList.find(point => point._id === user.point);
+
+  setFormData({
+    name: user.name || '',
+    phone: user.phone || '',
+    point: user.point || null,
+    plan: latestOrder.plan || [],
+    paymentStatus: latestOrder.paymentStatus || 'pending',
+    startDate: formatDate(latestOrder.orderStart) || '',
+    endDate: formatDate(latestOrder.orderEnd) || '',
+    amount: latestOrder.amount || '',
+    paymentMethod: latestOrder.paymentMethod || '',
+    paymentId: latestOrder.paymentId || '',
+    isVeg: latestOrder.isVeg || false,
+  });
+  setPointInputValue(userPoint ? userPoint.place : '');
+
+  // Initialize userType based on user.group
+  if (user.group) {
+    setUserType('group');
+    setSelectedGroup(user.group); // Set selected group to user's existing group
+  } else {
+    setUserType('individual');
+    setSelectedGroup('');
+  }
+
+  // Filter groups based on the selected point
+  if (user.point) {
+    const relevantGroups = groupsList.filter(group => group.point._id === user.point);
+    setFilteredGroups(relevantGroups);
+  }
+};
+
+const handleGroupOnPoints = (point) => {
+  console.log('here',groupsList, 'and :',point._id)
+  const relevantGroups = groupsList.filter(group => group.point._id === point._id);
+  setFilteredGroups(relevantGroups);
+}
 
   // Handlers
   const handleRemoveExistingImage = (src) => {
@@ -319,6 +360,7 @@ function Edit() {
 
   // Handle suggestion click for points
   const handleSuggestionClick = (point) => {
+    handleGroupOnPoints(point);
     setFormData({
       ...formData,
       point: point._id,
@@ -356,18 +398,18 @@ function Edit() {
   // Submit main form
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!formData.point) {
       setModalHeader('The entered point does not exist. You can add it now.');
       setNewPoint({ ...newPoint, place: pointInputValue });
       setOpenPointModal(true);
       return;
     }
-
-    // if (existingImages.length + images.length === 0) {
-    //   alert('Please have at least one image.');
-    //   return;
-    // }
+  
+    if (userType === 'group' && !selectedGroup) {
+      Swal.fire('Error', 'Please select a group.', 'error');
+      return;
+    }
   
     try {
       const data = new FormData();
@@ -384,17 +426,22 @@ function Edit() {
       data.append('paymentId', formData.paymentId);
       data.append('isVeg', formData.isVeg);
   
+      // Append userType and group if applicable
+      if (userType === 'group') {
+        data.append('group', selectedGroup);
+      } else {
+        data.append('group', ''); // Send an empty string or omit if not grouping
+      }
+  
       // Append plan array
       formData.plan.forEach((item) => data.append('plan[]', item));
   
-
-     // Append images to remove
-imagesToRemove.forEach((url) => {
-  if (url) {
-    data.append('imagesToRemove', url);
-  }
-});
-
+      // Append images to remove
+      imagesToRemove.forEach((url) => {
+        if (url) {
+          data.append('imagesToRemove', url);
+        }
+      });
   
       // Append new images
       images.forEach((image) => {
@@ -408,14 +455,14 @@ imagesToRemove.forEach((url) => {
       });
   
       if (response.status === 200) {
-        // ... handle success ...
+        // Handle success
         Swal.fire('Success', 'User updated successfully', 'success');
         navigate(-1); // Go back to the previous page
       } else {
         Swal.fire('Error', response.data.message, 'error');
       }
     } catch (error) {
-      // ... handle error ...
+      // Handle error
       if (error.response && error.response.status === 400) {
         Swal.fire('Error', error.response.data.message, 'error');
       } else {
@@ -423,6 +470,8 @@ imagesToRemove.forEach((url) => {
       }
     }
   };
+  
+
 
   // Submit leave form
   const handleLeaveSubmit = async () => {
@@ -543,6 +592,7 @@ imagesToRemove.forEach((url) => {
       }
     });
   };
+
   // Format Date
   const formatDate = (date) => {
     const d = new Date(date);
@@ -574,9 +624,8 @@ imagesToRemove.forEach((url) => {
             Edit User
           </Typography>
         </CardHeader>
-
-        {/* Add New Point Modal */}
-        <AddNewPointModal
+   {/* Add New Point Modal */}
+   <AddNewPointModal
           open={openPointModal}
           handleClose={() => {
             setOpenPointModal(false);
@@ -619,6 +668,29 @@ imagesToRemove.forEach((url) => {
         </div>
       ))}
     </div>
+  </div>
+)}
+
+
+
+{/* User Type Selection */}
+{isEditing && (
+  <div className="mb-4">
+    <Select
+      label="User Type"
+      value={userType}
+      onChange={(value) => {
+        setUserType(value);
+        if (value === 'individual') {
+          setSelectedGroup('');
+        }
+      }}
+      required
+      disabled={!isEditing}
+    >
+      <Option value="individual">Individual</Option>
+      <Option value="group">Group</Option>
+    </Select>
   </div>
 )}
 
@@ -677,6 +749,9 @@ imagesToRemove.forEach((url) => {
               )}
             </div>
 
+
+            
+
             {/* New Point Button */}
             {isEditing && (
               <div className="flex justify-between items-center mb-4">
@@ -690,6 +765,61 @@ imagesToRemove.forEach((url) => {
                 </Button>
               </div>
             )}
+
+
+{/* Group Selection (Conditional) */}
+{userType === 'group' && isEditing && (
+  <div className="mb-4">
+    <label className="block text-sm font-medium mb-1">Select Group</label>
+    <div 
+      className={`relative ${!formData.point ? 'opacity-50 cursor-not-allowed' : ''}`}
+      onClick={() => {
+        if (formData.point) {
+          setDropdownOpen(!dropdownOpen); // Toggle dropdown
+        }
+      }}
+    >
+      {/* Selected Value */}
+      <div 
+        className={`bg-white border border-gray-300 rounded px-3 py-2 cursor-pointer ${
+          !formData.point ? 'pointer-events-none' : ''
+        }`}
+      >
+        {selectedGroup
+          ? filteredGroups.find((group) => group._id === selectedGroup)?.title || 'Select a Group'
+          : 'Select a Group'}
+      </div>
+
+      {/* Dropdown Options */}
+      {dropdownOpen && (
+        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-md">
+          {filteredGroups.length > 0 ? (
+            filteredGroups.map((group) => (
+              <div
+                key={group._id}
+                className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                onClick={() => {
+                  setSelectedGroup(group._id); // Set selected group
+                  setDropdownOpen(false); // Close dropdown
+                }}
+              >
+                {group.title} - {group.location}
+              </div>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-gray-500">No Groups Available</div>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+
+
+
+
+            
 {/* Image Upload */}
 <div className="mb-4">
   <Typography variant="small" className="font-semibold mb-2">
@@ -724,22 +854,31 @@ imagesToRemove.forEach((url) => {
   </div>
 </div>
 
-            {/* Payment Status Checkbox */}
             <div className="mb-4">
-              <Checkbox
-                name="paymentStatus"
-                label="Show Order"
-                checked={formData.paymentStatus}
-                onChange={handleChange}
-                disabled={!isEditing}
-              />
+              {isEditing ? (
+                <Select
+                  name="paymentStatus"
+                  label="Payment Status"
+                  value={formData.paymentStatus}
+                  onChange={(value) =>
+                    setFormData({ ...formData, paymentStatus: value })
+                  }
+                  required
+                  disabled={!isEditing}
+                >
+                  <Option value="success">Success</Option>
+                  <Option value="failed">Failed</Option>
+                  <Option value="pending">Pending</Option>
+                </Select>
+              ) : (
+                <Typography variant="small" className="font-semibold mb-2">
+                  Payment Status: {formData.paymentStatus}
+                </Typography>
+              )}
             </div>
 
-            {/* Conditional Rendering based on Payment Status */}
-            {formData.paymentStatus && (
-              <>
-                {/* Plan Checkboxes */}
-                <PlanCheckboxes
+               {/* Plan Checkboxes */}
+               <PlanCheckboxes
                   plan={formData.plan}
                   handlePlanChange={handlePlanChange}
                   isEditing={isEditing}
@@ -771,6 +910,27 @@ imagesToRemove.forEach((url) => {
                     disabled
                   />
                 </div>
+
+            {/* Veg Toggle */}
+            <div className="flex items-center mb-4">
+                  <Typography variant="small" className="mr-2">
+                    Veg
+                  </Typography>
+                  <Switch
+                    checked={formData.isVeg}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isVeg: e.target.checked,
+                      })
+                    }
+                    disabled={!isEditing}
+                  />
+                </div>
+
+            {/* Conditionally render payment-related fields */}
+            {formData.paymentStatus !== 'pending' && (
+              <>
                  {/* Amount Input */}
                  <div className="mb-4">
                   <Input
@@ -818,28 +978,11 @@ imagesToRemove.forEach((url) => {
                     disabled={formData.paymentMethod === "Cash" || !isEditing}
                   />
                 </div>
-
-                {/* Veg Toggle */}
-                <div className="flex items-center mb-4">
-                  <Typography variant="small" className="mr-2">
-                    Veg
-                  </Typography>
-                  <Switch
-                    checked={formData.isVeg}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        isVeg: e.target.checked,
-                      })
-                    }
-                    disabled={!isEditing}
-                  />
-                </div>
               </>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-between">
+          {/* Action Buttons */}
+          <div className="flex justify-between">
               {isEditing ? (
                 <>
                   <Button type="button" color="red" className="mr-2" onClick={handleDelete}>

@@ -263,7 +263,11 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
 
   return (
     <>
-      <ListItem className="flex items-center justify-between space-x-3 bg-gray-300 p-2 rounded-md shadow-sm mb-2 relative">
+      <ListItem className={`flex items-center justify-between space-x-3 bg-gray-300 p-2 rounded-md shadow-sm mb-2 relative` } style={user.latestOrder.isBilled
+      ? {
+          backgroundImage: 'repeating-linear-gradient(30deg, #6b7280 0, #6b7280 1px, transparent 1px, transparent 5px)',
+        }
+      : {}}>
         {/* Avatar and User Info */}
         <div className="flex items-center space-x-3">
           <Avatar
@@ -471,26 +475,26 @@ const PointCard = ({ point }) => {
   const { place, totalUsers, totalExpiredUsers, usersExpired } = point;
 
   return (
-    <Card className={`shadow-md border-4 ${totalExpiredUsers > 0 ? "border-red-500" : "border-gray-300"} transition-transform transform hover:scale-105 mb-6`}>
-      <CardBody className="p-3 relative">
-        <div className="flex items-center justify-between">
+    <Card className={`shadow-md border-2 ${totalExpiredUsers > 0 ? "border-red-500" : "border-black"} mb-6`}>
+      <CardBody className="p-0 relative">
+        <div className="flex items-center px-2 pt-2 justify-between">
           <Typography variant="h6">{place}</Typography>
           {totalExpiredUsers > 0 ? (
-            <CheckCircleIcon className="h-5 w-5 text-green-400" />
+            <CheckCircleIcon className="h-5 w-5 text-red-400" />
           ) : (
-            <XCircleIcon className="h-5 w-5 text-red-400" />
+            <XCircleIcon className="h-5 w-5 text-black" />
           )}
+         
+       
         </div>
+        <Typography variant="small" color="gray" className={`px-2 font-bold ${totalExpiredUsers > 0 ? "text-red-600" : "text-gray-700"}`}>
+            Expired: {totalExpiredUsers}/{totalUsers}
+          </Typography>
         <div className="mb-2 flex items-center justify-between">
-          <Typography variant="small" color="gray" className="font-semibold">
-            Total: {totalUsers}
-          </Typography>
-          <Typography variant="small" color="gray" className={`font-bold ${totalExpiredUsers > 0 ? "text-red-600" : "text-gray-700"}`}>
-            Expired: {totalExpiredUsers}
-          </Typography>
+         
         </div>
         <div>
-          <Typography variant="small" color="gray" className="font-semibold mb-1">
+          <Typography variant="small" color="gray" className="px-2 font-semibold mb-1">
             Users Expired:
           </Typography>
           {totalExpiredUsers > 0 ? (

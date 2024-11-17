@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 
 export function Attendance() {
   const [users, setUsers] = useState([]);
-  const [pointId] = useState("66c26676b43a45070b24e735");
+  // const [pointId] = useState("66c26676b43a45070b24e735");BTYP
+  const [pointId] = useState("66d165903e98c9eddf35c5aa");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState(
@@ -447,7 +448,7 @@ export function Attendance() {
                       (change) =>
                         change.userId === user._id && change.meal === meal
                     );
-
+{console.log(user)}
                     // Determine the display status
                     const displayStatus = pendingChange
                       ? pendingChange.newStatus

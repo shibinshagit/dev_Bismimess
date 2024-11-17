@@ -19,7 +19,7 @@ const styles = {
 };
 
 const UserItem = ({ user }) => (
-  <ListItem className="flex items-center bg-red-900 space-x-3 p-3 rounded-lg shadow-sm mb-2 relative overflow-hidden">
+  <ListItem className="flex items-center bg-red-900 space-x-3 p-1 rounded-lg shadow-sm mb-2 relative overflow-hidden">
     <div className="absolute inset-0" style={styles.shiningEffect}></div>
     <Avatar
       src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
@@ -51,11 +51,14 @@ const PointCard = ({ point }) => {
   return (
     <>
       <style>{shineKeyframes}</style>
-      <div className={`bg-white shadow-lg rounded-lg p-3 mb-6 border-l-4 ${totalLeaveToday > 0 ? "border-red-500" : "border-green-500"}`}>
-        <div className="flex items-center justify-between mb-4">
+      <div className={`bg-white shadow-lg rounded-lg mb-6 border-l-4 ${totalLeaveToday > 0 ? "border-red-500" : "border-green-500"}`}>
+        <div className="flex items-center justify-between p-2 mb-1">
           <Typography variant="h5" className="font-semibold text-gray-800">
-            {place}
+            {place}  <Typography variant="small" color="gray" className={`font-bold ${totalLeaveToday > 0 ? "text-red-600" : "text-green-600"}`}>
+               Leave : {totalLeaveToday}/{totalUsers}
+            </Typography>
           </Typography>
+          
           {totalLeaveToday > 0 ? (
             <XCircleIcon className="h-6 w-6 text-red-500" />
           ) : (
@@ -63,30 +66,10 @@ const PointCard = ({ point }) => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <Typography variant="small" color="gray" className="font-semibold">
-              Total Users: {totalUsers}
-            </Typography>
-          
-          </div>
-          <div>
-            <Typography variant="small" color="gray" className={`font-bold ${totalLeaveToday > 0 ? "text-red-600" : "text-green-600"}`}>
-               Leave Today : {totalLeaveToday}
-            </Typography>
-            <Typography
-              variant="h6"
-              
-            >
-              
-            </Typography>
-          </div>
-        </div>
+      
 
         <div>
-          <Typography variant="small" color="black" className="font-semibold mb-2">
-            Users on Leave Today
-          </Typography>
+          
           {totalLeaveToday > 0 ? (
             <List>
               {usersOnLeaveToday.map((user) => (
@@ -94,7 +77,7 @@ const PointCard = ({ point }) => {
               ))}
             </List>
           ) : (
-            <Typography variant="small" color="gray" className="italic">
+            <Typography variant="small" color="gray" className="italic p-2">
               No leave today.
             </Typography>
           )}

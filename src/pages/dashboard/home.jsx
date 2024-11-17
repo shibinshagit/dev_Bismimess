@@ -42,7 +42,10 @@ const PointStatisticsCard  = ({ point }) => {
     totalLunch,
     totalDinner,
     totalVegNeededToday,
-    totalVeg
+    totalVeg,
+    vegBreakfastToday,
+    vegLunchToday,
+    vegDinnerToday
   } = point;
 
   return (
@@ -93,8 +96,15 @@ const PointStatisticsCard  = ({ point }) => {
           <span className=" text-green-800 px-2 py-1 rounded text-xs font-semibold flex items-center">
             {/* You can use an icon if you prefer */}
             <LeafIcon className="w-4 h-4 mr-1" />
-            Veg: {totalVegNeededToday?totalVegNeededToday:''}{totalVeg?totalVeg:''}
+            Veg: {totalVegNeededToday?totalVegNeededToday:'0'}/{totalVeg?totalVeg:'0'}
+            <span className=" text-green-800 px-2 py-1 ml-3 rounded text-xs font-semibold flex items-center">
+          
+          (   B:{vegBreakfastToday?vegBreakfastToday:'0'} ,     L:{vegLunchToday?vegLunchToday:'0'}    , D:{vegDinnerToday?vegDinnerToday:'0'})
+           </span>
           </span>
+          
+       
+     
         </div>
       </section>
     </div>
@@ -177,36 +187,42 @@ export function Home() {
         <StatisticsCard
           title="Total"
           value={points.reduce((acc, point) => acc + point.totalCustomers, 0)}
+          veg={points.reduce((acc, point) => acc + point.totalVeg, 0)}
           icon={<UserGroupIcon />}
           color="blue"
         />{console.log('me:',points)}
         <StatisticsCard
           title="Active"
           value={points.reduce((acc, point) => acc + point.todaysActiveCustomers, 0)}
+          veg={points.reduce((acc, point) => acc + point.totalVegNeededToday, 0)}
           icon={<CheckCircleIcon />}
           color="green"
         />
         <StatisticsCard
           title="Leave"
           value={points.reduce((acc, point) => acc + point.todaysLeave, 0)}
+          veg={points.reduce((acc, point) => acc + point.vegOnLeaveToday, 0)}
           icon={<ClockIcon />}
           color="red"
         />
         <StatisticsCard
           title="Breakfast"
           value={points.reduce((acc, point) => acc + point.totalBreakfast, 0)}
+          veg={points.reduce((acc, point) => acc + point.vegBreakfastToday, 0)}
           icon={<ClockIcon />}
           color="orange"
         />
         <StatisticsCard
           title="Lunch"
           value={points.reduce((acc, point) => acc + point.totalLunch, 0)}
+          veg={points.reduce((acc, point) => acc + point.vegLunchToday, 0)}
           icon={<ClockIcon />}
           color="green"
         />
         <StatisticsCard
           title="Dinner"
           value={points.reduce((acc, point) => acc + point.totalDinner, 0)}
+          veg={points.reduce((acc, point) => acc + point.vegDinnerToday, 0)}
           icon={<ClockIcon />}
           color="blue"
         />
