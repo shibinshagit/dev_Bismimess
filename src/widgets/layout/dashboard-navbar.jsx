@@ -54,8 +54,8 @@ export function DashboardNavbar() {
 
   return (
     <Navbar
-      color="white"
-      className={`rounded-xl transition-all ${
+      color=""
+      className={`bg-white text-white rounded transition-all ${
         fixedNavbar
           ? "sticky top-0 z-40 py-3 shadow-md shadow-blue-gray-500/5"
           : "sticky top-0 px-0 py-1 z-40 p-3"
@@ -73,7 +73,7 @@ export function DashboardNavbar() {
               type="text"
               label="Search"
               onChange={handleSearch}
-              className="bg-white md:mr-4 md:w-56"
+              className="md:mr-4 md:w-56"
             />
           )}
           {addButton && (

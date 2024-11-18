@@ -22,10 +22,11 @@ export function Dashboard() {
           sidenavType === "dark" ? "/img/logo-ct.png" : "/img/logo-ct-dark.png"
         }
       />
-      <div className="p-4 xl:ml-80">
+      <div className="xl:ml-80">
         <DashboardNavbar />
         <Configurator />
-        <Routes>
+<div className="p-2">
+<Routes>
           {routes.map(
             ({ layout, pages }) =>
               layout === "dashboard" &&
@@ -34,6 +35,7 @@ export function Dashboard() {
               ))
           )}
         </Routes>
+</div>
         <div className="text-blue-gray-600">
         </div>
       </div>
