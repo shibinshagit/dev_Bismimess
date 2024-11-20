@@ -6,8 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 export function Attendance() {
   const [users, setUsers] = useState([]);
-  // const [pointId] = useState("66c26676b43a45070b24e735");BTYP
-  const [pointId] = useState("66d165903e98c9eddf35c5aa");
+  const [pointId] = useState("66d165903e98c9eddf35c5aa"); // Adjust as needed
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState(
@@ -16,10 +15,11 @@ export function Attendance() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingChanges, setPendingChanges] = useState([]);
   const [counts, setCounts] = useState({
-    total: 0,
-    expired: 0,
-    leave: 0,
-    delivered: 0,
+    totalUsers: 0,
+    expiredUsers: 0,
+    totalMeals: 0,
+    leaveMeals: 0,
+    deliveredMeals: 0,
   });
   const [suggestions, setSuggestions] = useState([]);
   const navigate = useNavigate();
@@ -48,51 +48,98 @@ export function Attendance() {
 
   // Function to compute counts
   const computeCounts = (usersData) => {
-    let total = usersData.length;
-    let expired = 0;
-    let leave = 0;
-    let delivered = 0;
+    let totalUsers = usersData.length;
+    let totalMeals = 0;
+    let expiredUsers = 0;
+    let leaveMeals = 0;
+    let deliveredMeals = 0;
 
     usersData.forEach((user) => {
-      const latestOrder = user.orders.sort(
+      const sortedOrders = user.orders.sort(
         (a, b) => new Date(b.orderStart) - new Date(a.orderStart)
-      )[0];
+      );
 
-      if (latestOrder) {
-        const orderEnd = stripTime(new Date(latestOrder.orderEnd));
-        const targetDate = stripTime(new Date(selectedDate));
+      const latestOrder = sortedOrders[0];
 
-        if (targetDate > orderEnd) {
-          expired += 1;
-        } else {
-          const isLeaveDay = latestOrder.leave.some((leave) => {
+      if (!latestOrder) {
+        // User has no orders
+        return;
+      }
+
+      const orderEnd = stripTime(new Date(latestOrder.orderEnd));
+      const orderStart = stripTime(new Date(latestOrder.orderStart));
+      const targetDate = stripTime(new Date(selectedDate));
+
+      if (targetDate < orderStart || targetDate > orderEnd) {
+        expiredUsers += 1;
+      } else {
+        latestOrder.plan.forEach((meal) => {
+          totalMeals += 1;
+
+          // Check if user is on leave for this meal on targetDate
+          const isLeaveForMeal = latestOrder.leave.some((leave) => {
             const leaveStart = stripTime(new Date(leave.start));
             const leaveEnd = stripTime(new Date(leave.end));
-            return targetDate >= leaveStart && targetDate <= leaveEnd;
+            return (
+              targetDate >= leaveStart &&
+              targetDate <= leaveEnd &&
+              leave.meals.includes(meal)
+            );
           });
 
-          if (isLeaveDay) {
-            leave += 1;
+          if (isLeaveForMeal) {
+            leaveMeals += 1;
           } else {
+            // Get attendance status
             const attendanceRecord = latestOrder.attendances.find(
               (att) => stripTime(att.date).getTime() === targetDate.getTime()
             );
 
-            if (attendanceRecord) {
-              ["B", "L", "D"].forEach((meal) => {
-                if (attendanceRecord[meal] === "delivered") {
-                  delivered += 1;
-                }
-              });
+            const status = attendanceRecord ? attendanceRecord[meal] : "packed";
+
+            if (status === "delivered") {
+              deliveredMeals += 1;
             }
           }
-        }
+        });
       }
     });
 
-    setCounts({ total, expired, leave, delivered });
+    setCounts({
+      totalUsers,
+      expiredUsers,
+      totalMeals,
+      leaveMeals,
+      deliveredMeals,
+    });
   };
 
+  // Helper function to check if meal time has passed
+  const hasMealTimePassed = (meal) => {
+    const now = new Date();
+    const currentDate = stripTime(now);
+    const selectedDateObj = stripTime(new Date(selectedDate));
+
+    if (selectedDateObj < currentDate) {
+      // Selected date is in the past
+      return true;
+    } else if (selectedDateObj > currentDate) {
+      // Selected date is in the future
+      return false;
+    } else {
+      // Selected date is today, compare time
+      const currentHour = now.getHours();
+      if (meal === "B") {
+        return currentHour >= 10; // Breakfast ends at 10 AM
+      } else if (meal === "L") {
+        return currentHour >= 15; // Lunch ends at 3 PM
+      } else if (meal === "D") {
+        return currentHour >= 22; // Dinner ends at 10 PM
+      }
+    }
+  };
+
+  
   // Function to handle local changes (marking as delivered or undo)
   const handleLocalChange = (userId, meal, newStatus) => {
     setPendingChanges((prev) => {
@@ -193,6 +240,20 @@ export function Attendance() {
     handleLocalChange(userId, meal, "packed");
   };
 
+  // Status labels and color function
+  const statusLabels = {
+    packed: "Packed",
+    delivered: "Delivered",
+    leave: "Leave",
+    NIL: "NIL",
+  };
+
+  const getStatusColor = (status) => {
+    if (status === "delivered") return "text-green-600";
+    if (status === "leave") return "text-red-500";
+    return "text-gray-500";
+  };
+
   // Parse search query
   const parseSearchQuery = (query) => {
     const trimmedQuery = query.trim().toLowerCase();
@@ -209,9 +270,11 @@ export function Attendance() {
     const targetDate = stripTime(new Date(selectedDate));
 
     return users.filter((user) => {
-      const latestOrder = user.orders.sort(
+      const sortedOrders = user.orders.sort(
         (a, b) => new Date(b.orderStart) - new Date(a.orderStart)
-      )[0];
+      );
+
+      const latestOrder = sortedOrders[0];
 
       if (!latestOrder) return false;
 
@@ -290,16 +353,19 @@ export function Attendance() {
       {/* Counts Section */}
       <div className="flex flex-wrap justify-center mb-6 space-x-4">
         <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-md m-1">
-          <span className="font-medium">Total Users:</span> {counts.total}
+          <span className="font-medium">Total Users:</span> {counts.totalUsers}
         </div>
         <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-md m-1">
-          <span className="font-medium">Expired:</span> {counts.expired}
-        </div>
-        <div className="bg-red-100 text-red-800 px-4 py-2 rounded-md m-1">
-          <span className="font-medium">Leave:</span> {counts.leave}
+          <span className="font-medium">Expired Users:</span> {counts.expiredUsers}
         </div>
         <div className="bg-green-100 text-green-800 px-4 py-2 rounded-md m-1">
-          <span className="font-medium">Delivered:</span> {counts.delivered}
+          <span className="font-medium">Total Meals:</span> {counts.totalMeals}
+        </div>
+        <div className="bg-red-100 text-red-800 px-4 py-2 rounded-md m-1">
+          <span className="font-medium">Leave Meals:</span> {counts.leaveMeals}
+        </div>
+        <div className="bg-green-100 text-green-800 px-4 py-2 rounded-md m-1">
+          <span className="font-medium">Delivered Meals:</span> {counts.deliveredMeals}
         </div>
       </div>
 
@@ -355,14 +421,19 @@ export function Attendance() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => {
-              const latestOrder = user.orders.sort(
+            {filteredUsers.map((user, index) => {
+              const sortedOrders = user.orders.sort(
                 (a, b) => new Date(b.orderStart) - new Date(a.orderStart)
-              )[0];
+              );
+
+              const latestOrder = sortedOrders[0];
+
+              const targetDate = stripTime(new Date(selectedDate));
 
               if (!latestOrder) {
+                // User has no orders
                 return (
-                  <tr key={user._id}>
+                  <tr key={user._id} className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
                     <td className="py-2 px-4 border-b">{user.name}</td>
                     <td className="py-2 px-4 border-b">{user.phone}</td>
                     <td className="py-2 px-4 border-b" colSpan={3}>
@@ -374,9 +445,9 @@ export function Attendance() {
 
               const orderStart = stripTime(new Date(latestOrder.orderStart));
               const orderEnd = stripTime(new Date(latestOrder.orderEnd));
-              const targetDate = stripTime(new Date(selectedDate));
 
               if (targetDate < orderStart || targetDate > orderEnd) {
+                // Order is expired
                 return (
                   <tr key={user._id} className="bg-blue-100">
                     <td className="py-2 px-4 border-b">{user.name}</td>
@@ -388,104 +459,94 @@ export function Attendance() {
                 );
               }
 
-              const isLeaveDay = latestOrder.leave.some((leave) => {
-                const leaveStart = stripTime(new Date(leave.start));
-                const leaveEnd = stripTime(new Date(leave.end));
-                return targetDate >= leaveStart && targetDate <= leaveEnd;
-              });
+              const planMeals = latestOrder.plan; // User's meal plan, e.g., ['B', 'L']
 
-              if (isLeaveDay) {
-                return (
-                  <tr key={user._id} className="bg-red-100">
-                    <td className="py-2 px-4 border-b">{user.name}</td>
-                    <td className="py-2 px-4 border-b">{user.phone}</td>
-                    <td className="py-2 px-4 border-b" colSpan={3}>
-                      On Leave
-                    </td>
-                  </tr>
-                );
-              }
-
+              // Get attendanceRecord for the targetDate
               const attendanceRecord = latestOrder.attendances.find(
                 (att) => stripTime(att.date).getTime() === targetDate.getTime()
               );
 
-              const statusLabels = {
-                packed: "Packed",
-                leave: "Leave",
-                delivered: "Delivered",
-                NIL: "NIL",
-              };
-
-              const getStatusColor = (status) => {
-                return status === "delivered"
-                  ? "text-green-600"
-                  : status === "leave"
-                  ? "text-red-500"
-                  : "text-gray-500";
-              };
-
               return (
-                <tr key={user._id}>
+                <tr key={user._id} className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
                   <td className="py-2 px-4 border-b">{user.name}</td>
                   <td className="py-2 px-4 border-b">{user.phone}</td>
                   {["B", "L", "D"].map((meal) => {
                     const mealFull =
-                      meal === "B"
-                        ? "Breakfast"
-                        : meal === "L"
-                        ? "Lunch"
-                        : "Dinner";
+                      meal === "B" ? "Breakfast" : meal === "L" ? "Lunch" : "Dinner";
 
-                    // Original meal status
-                    const originalStatus =
-                      attendanceRecord && attendanceRecord[meal]
-                        ? attendanceRecord[meal]
-                        : "packed";
+                    // Check if the meal is in the user's plan
+                    if (!planMeals.includes(meal)) {
+                      // User doesn't have this meal in their plan
+                      return (
+                        <td key={meal} className="py-2 px-4 border-b">
+                          <span className="text-gray-500">NIL</span>
+                        </td>
+                      );
+                    }
 
-                    // Check if there's a pending change for this meal
+                    // Check if user is on leave for this meal on selectedDate
+                    const isLeaveForMeal = latestOrder.leave.some((leave) => {
+                      const leaveStart = stripTime(new Date(leave.start));
+                      const leaveEnd = stripTime(new Date(leave.end));
+                      return (
+                        targetDate >= leaveStart &&
+                        targetDate <= leaveEnd &&
+                        leave.meals.includes(meal)
+                      );
+                    });
+
+                    if (isLeaveForMeal) {
+                      // User is on leave for this meal
+                      return (
+                        <td key={meal} className="py-2 px-4 border-b">
+                          <span className="text-red-500 font-medium">Leave</span>
+                        </td>
+                      );
+                    }
+
+                    // Else, get the attendance status for this meal
+                    const attendanceStatus = attendanceRecord
+                      ? attendanceRecord[meal]
+                      : "packed"; // Default to "packed"
+
+                    // Check for pending changes
                     const pendingChange = pendingChanges.find(
-                      (change) =>
-                        change.userId === user._id && change.meal === meal
+                      (change) => change.userId === user._id && change.meal === meal
                     );
-{console.log(user)}
+
                     // Determine the display status
                     const displayStatus = pendingChange
                       ? pendingChange.newStatus
-                      : originalStatus;
+                      : attendanceStatus;
 
+                    // Determine if the meal time has passed
+                    const isMealTimePassed = hasMealTimePassed(meal);
+
+                    // Render the cell
                     return (
                       <td key={meal} className="py-2 px-4 border-b">
-                        {displayStatus === "packed" ? (
+                        {["packed", "delivered"].includes(displayStatus) ? (
                           <button
-                            type="button" // Prevent form submission
-                            onClick={() => handleMarkDelivered(user._id, meal)}
-                            className="text-sm text-blue-600 underline hover:text-blue-800 font-medium"
+                            type="button"
+                            onClick={() =>
+                              displayStatus === "packed"
+                                ? handleMarkDelivered(user._id, meal)
+                                : handleUndo(user._id, meal)
+                            }
+                            className={`text-sm underline font-medium ${
+                              isMealTimePassed
+                                ? "text-gray-400 cursor-not-allowed"
+                                : displayStatus === "packed"
+                                ? "text-blue-600 hover:text-blue-800"
+                                : "text-red-600 hover:text-red-800"
+                            }`}
+                            disabled={isMealTimePassed}
                           >
                             {statusLabels[displayStatus]}
                           </button>
-                        ) : displayStatus === "delivered" ? (
-                          <button
-                            type="button" // Prevent form submission
-                            onClick={() => handleUndo(user._id, meal)}
-                            className="text-sm text-red-600 underline hover:text-red-800 font-medium"
-                          >
-                            {statusLabels[displayStatus]}
-                          </button>
-                        ): displayStatus === "NILL" ? (
-                          <button
-                            type="button" // Prevent form submission
-                            onClick={() => handleUndo(user._id, meal)}
-                            className="text-sm text-red-600 underline hover:text-red-800 font-medium"
-                          >
-                            {statusLabels[displayStatus]}
-                          </button>
-                        )
-                         : (
+                        ) : (
                           <span
-                            className={`${getStatusColor(
-                              displayStatus
-                            )} font-medium`}
+                            className={`${getStatusColor(displayStatus)} font-medium`}
                           >
                             {statusLabels[displayStatus]}
                           </span>
@@ -504,7 +565,7 @@ export function Attendance() {
       {pendingChanges.length > 0 && (
         <div className="fixed bottom-4 right-4">
           <button
-            type="button" // Prevent form submission
+            type="button"
             onClick={syncChanges}
             className="bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg hover:bg-blue-700"
           >
@@ -518,5 +579,9 @@ export function Attendance() {
 
 const stripTime = (date) => {
   const validDate = date instanceof Date ? date : new Date(date);
-  return new Date(validDate.getFullYear(), validDate.getMonth(), validDate.getDate());
+  return new Date(
+    validDate.getFullYear(),
+    validDate.getMonth(),
+    validDate.getDate()
+  );
 };

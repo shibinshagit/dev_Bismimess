@@ -10,6 +10,7 @@ import { SearchIcon } from 'lucide-react';
 function GlobalSearch() {
   const [controller, dispatch] = useMaterialTailwindController();
   let { searchTerm } = controller;
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -84,7 +85,9 @@ useEffect(() => {
     fetchSuggestions();
   }, [searchTerm]);
   
-
+  const handleUpdate = (user) => {
+    navigate(`/dashboard/edit`, { state: { user } });
+  };
   return (
     <div className="p-4">
       {/* <div className="relative">
@@ -133,6 +136,7 @@ useEffect(() => {
               className={`mb-4 p-4 ${
                 user.isDeleted ? 'bg-red-50' : 'bg-white'
               }`}
+              onClick={() => handleUpdate(user)}
             >
               <div className="flex items-center">
                 <Avatar

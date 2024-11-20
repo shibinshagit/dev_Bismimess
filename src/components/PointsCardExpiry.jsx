@@ -23,17 +23,18 @@ import {
   Select,
   Option,
 } from "@material-tailwind/react";
+import { useNavigate } from "react-router-dom";
 
 
 const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
   const [showActions, setShowActions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
+  const navigate = useNavigate();
   // State for Renew Order Dialog
   const [openRenewDialog, setOpenRenewDialog] = useState(false);
   const [renewFormData, setRenewFormData] = useState({
     plan: [],
-    paymentStatus: false,
+    paymentStatus: "", // Changed to string
     startDate: "",
     endDate: "",
     amount: "",
@@ -45,27 +46,12 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
 
   const toggleActions = () => setShowActions((prev) => !prev);
 
-  const handleDeleteUser = async () => {
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${user.name}?`
-    );
-    if (!confirmDelete) return;
+  const handleUpdate = (user) => {
+    navigate(`/dashboard/edit`, { state: { user } });
+  };
 
-    setIsProcessing(true);
-    try {
-      const response = await axios.delete(`${BaseUrl}/api/users/${user._id}`);
-      if (response.status === 200) {
-        alert("User deleted successfully.");
-        if (onUserDeleted) onUserDeleted(user._id);
-      } else {
-        alert(`Error deleting user: ${response.data.message}`);
-      }
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("An error occurred while deleting the user.");
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleDeleteUser = async () => {
+    // ... existing code ...
   };
 
   const handleRenewOrderClick = () => {
@@ -84,7 +70,7 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
 
     // Calculate the new end date (assuming 1 month duration)
     const newEndDate = new Date(newStartDate);
-    newEndDate.setMonth(newEndDate.getMonth() + 1);
+    newEndDate.setMonth(newStartDate.getMonth() + 1);
     if (newEndDate.getDate() !== newStartDate.getDate()) {
       newEndDate.setDate(0);
     }
@@ -126,7 +112,7 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
     // Set the form data with previous order's details and calculated amount
     setRenewFormData({
       plan: latestOrder.plan || [],
-      paymentStatus: latestOrder.paymentStatus || false,
+      paymentStatus: latestOrder.paymentStatus || "pending", // Set paymentStatus
       startDate: newStartDateISO,
       endDate: newEndDateISO,
       amount: calculatedAmount > 0 ? calculatedAmount.toString() : "0",
@@ -210,35 +196,47 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
       alert("Please select at least one meal in the plan.");
       return;
     }
-    if (!renewFormData.amount) {
-      alert("Please enter the amount.");
+    if (!renewFormData.paymentStatus) {
+      alert("Please select a payment status.");
       return;
     }
-    if (!renewFormData.paymentMethod) {
-      alert("Please select a payment method.");
-      return;
-    }
-    if (
-      renewFormData.paymentMethod !== "Cash" &&
-      !renewFormData.paymentId.trim()
-    ) {
-      alert("Please enter the payment ID.");
-      return;
+
+    // If paymentStatus is not 'pending', validate payment-related fields
+    if (renewFormData.paymentStatus !== "pending") {
+      if (!renewFormData.amount) {
+        alert("Please enter the amount.");
+        return;
+      }
+      if (!renewFormData.paymentMethod) {
+        alert("Please select a payment method.");
+        return;
+      }
+      if (
+        renewFormData.paymentMethod !== "Cash" &&
+        !renewFormData.paymentId.trim()
+      ) {
+        alert("Please enter the payment ID.");
+        return;
+      }
     }
 
     // Prepare the data to send to the server
     const dataToSend = {
       userId: user._id,
       plan: renewFormData.plan,
-      paymentStatus: renewFormData.paymentStatus,
+      paymentStatus: renewFormData.paymentStatus, // Include paymentStatus
       startDate: renewFormData.startDate,
       endDate: renewFormData.endDate,
-      amount: parseFloat(renewFormData.amount),
-      paymentMethod: renewFormData.paymentMethod,
-      paymentId:
-        renewFormData.paymentMethod !== "Cash" ? renewFormData.paymentId : "",
       isVeg: renewFormData.isVeg,
     };
+
+    // Include payment-related fields only if paymentStatus is not 'pending'
+    if (renewFormData.paymentStatus !== "pending") {
+      dataToSend.amount = parseFloat(renewFormData.amount);
+      dataToSend.paymentMethod = renewFormData.paymentMethod;
+      dataToSend.paymentId =
+        renewFormData.paymentMethod !== "Cash" ? renewFormData.paymentId : "";
+    }
 
     try {
       setIsProcessing(true);
@@ -263,13 +261,22 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
 
   return (
     <>
-      <ListItem className={`flex items-center justify-between space-x-3 bg-gray-300 p-2 rounded-md shadow-sm mb-2 relative` } style={user.latestOrder.isBilled
-      ? {
-          backgroundImage: 'repeating-linear-gradient(30deg, #6b7280 0, #6b7280 1px, transparent 1px, transparent 5px)',
+      <ListItem
+        className={`flex items-center justify-between space-x-3 bg-gray-300 p-2 rounded-md shadow-sm mb-2 relative`}
+        style={
+          user.latestOrder && user.latestOrder.isBilled
+            ? {
+                backgroundImage:
+                  "repeating-linear-gradient(30deg, #6b7280 0, #6b7280 1px, transparent 1px, transparent 5px)",
+              }
+            : {}
         }
-      : {}}>
+      >
         {/* Avatar and User Info */}
-        <div className="flex items-center space-x-3">
+        <div
+          className="flex items-center space-x-3 cursor-pointer"
+          onClick={() => handleUpdate(user)}
+        >
           <Avatar
             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
               user.name
@@ -328,17 +335,78 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
 
       {/* Renew Order Dialog */}
       <Dialog open={openRenewDialog} handler={setOpenRenewDialog} size="lg">
-    <DialogHeader>Renew Order for {user.name}</DialogHeader>
-    <DialogBody divider className="overflow-y-auto max-h-96">
+        <DialogHeader>Renew Order for {user.name}</DialogHeader>
+        <DialogBody divider className="overflow-y-auto max-h-96">
           <div className="grid grid-cols-1 gap-4">
+            {/* Payment Status Select */}
             <div>
-              <Checkbox
+              <Select
                 name="paymentStatus"
-                label="Paid"
-                checked={renewFormData.paymentStatus}
-                onChange={handleRenewFormChange}
-              />
+                label="Payment Status"
+                value={renewFormData.paymentStatus}
+                onChange={(value) =>
+                  setRenewFormData({ ...renewFormData, paymentStatus: value })
+                }
+                required
+              >
+                <Option value="success">Success</Option>
+                <Option value="failed">Failed</Option>
+                <Option value="pending">Pending</Option>
+              </Select>
             </div>
+
+            {/* Conditionally render payment-related fields */}
+            {renewFormData.paymentStatus !== "pending" && (
+              <>
+                {/* Amount Input */}
+                <div>
+                  <Input
+                    type="number"
+                    name="amount"
+                    label="Amount"
+                    value={renewFormData.amount}
+                    onChange={handleRenewFormChange}
+                    required
+                  />
+                </div>
+
+                {/* Payment Method Select */}
+                <div>
+                  <Select
+                    name="paymentMethod"
+                    label="Payment Method"
+                    value={renewFormData.paymentMethod}
+                    onChange={(value) =>
+                      setRenewFormData({
+                        ...renewFormData,
+                        paymentMethod: value,
+                        paymentId: "", // Reset paymentId when paymentMethod changes
+                      })
+                    }
+                    required
+                  >
+                    <Option value="Cash">Cash</Option>
+                    <Option value="Bank">Bank</Option>
+                    <Option value="Online">Online</Option>
+                  </Select>
+                </div>
+
+                {/* Payment ID Input */}
+                <div>
+                  <Input
+                    type="text"
+                    name="paymentId"
+                    label="Payment ID"
+                    value={renewFormData.paymentId}
+                    onChange={handleRenewFormChange}
+                    required={renewFormData.paymentMethod !== "Cash"}
+                    disabled={renewFormData.paymentMethod === "Cash"}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Plan Selection */}
             <div>
               <Typography variant="small" className="font-semibold mb-2">
                 Plan
@@ -367,6 +435,8 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
                 />
               </div>
             </div>
+
+            {/* Start Date Input */}
             <div>
               <Input
                 type="date"
@@ -378,6 +448,8 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
                 required
               />
             </div>
+
+            {/* End Date Input */}
             <div>
               <Input
                 type="date"
@@ -388,51 +460,15 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
                 required
               />
             </div>
-            <div>
-              <Input
-                type="number"
-                name="amount"
-                label="Amount"
-                value={renewFormData.amount}
-                onChange={handleRenewFormChange}
-                required
-              />
-            </div>
+
+            {/* Total Leaves from Previous Order */}
             <div>
               <Typography variant="small" className="mb-2">
                 Total Leaves from Previous Order: {renewFormData.totalLeaves}
               </Typography>
             </div>
-            <div>
-              <Select
-                name="paymentMethod"
-                label="Payment Method"
-                value={renewFormData.paymentMethod}
-                onChange={(value) =>
-                  setRenewFormData({
-                    ...renewFormData,
-                    paymentMethod: value,
-                    paymentId: "", // Reset paymentId when paymentMethod changes
-                  })
-                }
-                required
-              >
-                <Option value="Cash">Cash</Option>
-                <Option value="Bank">Bank</Option>
-                <Option value="Online">Online</Option>
-              </Select>
-            </div>
-            <div>
-              <Input
-                type="text"
-                name="paymentId"
-                label="Payment ID"
-                value={renewFormData.paymentId}
-                onChange={handleRenewFormChange}
-                required={renewFormData.paymentMethod !== "Cash"}
-                disabled={renewFormData.paymentMethod === "Cash"}
-              />
-            </div>
+
+            {/* Veg Switch */}
             <div className="flex items-center">
               <Typography variant="small" className="mr-2">
                 Veg

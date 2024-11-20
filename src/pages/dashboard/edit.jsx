@@ -7,7 +7,8 @@ import { PlusIcon } from 'lucide-react';
 import { 
   Card, CardHeader, CardBody, Typography, Input, Button, Checkbox, 
   List, ListItem, Dialog, DialogHeader, DialogBody, DialogFooter, 
-  Option, Select ,Switch
+  Option, Select ,Switch,
+  Avatar
 } from "@material-tailwind/react";
 import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { BaseUrl } from '../../constants/BaseUrl';
@@ -120,8 +121,9 @@ const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pointInputValue, setPointInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredPoints, setFilteredPoints] = useState([]);
+  
 
-  const [leaveFormData, setLeaveFormData] = useState({ leaveStart: '', leaveEnd: '' });
+  const [leaveFormData, setLeaveFormData] = useState({ leaveStart: '', leaveEnd: '', meals: [] });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -474,19 +476,25 @@ const handleGroupOnPoints = (point) => {
 
 
   // Submit leave form
-  const handleLeaveSubmit = async () => {
-    const { leaveStart, leaveEnd } = leaveFormData;
-
+  const handleLeaveSubmit = async (leaveFormData) => {
+    const { leaveStart, leaveEnd, meals } = leaveFormData;
+  console.log('dd',leaveFormData)
+    if (!meals || meals.length === 0) {
+      Swal.fire('Error', 'Please select at least one meal.', 'error');
+      return;
+    }
+  
     try {
       const response = await axios.post(`${BaseUrl}/api/addLeave/${user.latestOrder._id}`, {
         leaveStart,
-        leaveEnd
+        leaveEnd,
+        meals,
       });
       if (response.status === 200) {
         dispatch(fetchCustomers());
         Swal.fire('Success', 'Leave added successfully', 'success');
         fetchUserById(user._id);
-        setLeaveFormData({ leaveStart: '', leaveEnd: '' });
+        setLeaveFormData({ leaveStart: '', leaveEnd: '', meals: [] }); // Reset form data
       } else {
         Swal.fire('Error', response.data.message || 'Error adding leave', 'error');
       }
@@ -503,10 +511,13 @@ const handleGroupOnPoints = (point) => {
   // Handle Edit Leave
   const handleEditLeave = async (leave) => {
     try {
-      const response = await axios.put(`${BaseUrl}/api/editLeave/${user.latestOrder._id}/${leave._id}`, {
-        leaveStart: leave.start,
-        leaveEnd: leave.end
-      });
+      const response = await axios.put(
+        `${BaseUrl}/api/editLeave/${user.latestOrder._id}/${leave._id}`,
+        {
+          leaveStart: leave.start,
+          leaveEnd: leave.end,
+          meals: leave.meals,
+        });
       if (response.status === 200) {
         dispatch(fetchCustomers());
         Swal.fire('Success', 'Leave updated successfully', 'success');
@@ -619,10 +630,7 @@ const handleGroupOnPoints = (point) => {
   return (
     <div className="flex justify-center my-12">
       <Card className="w-full max-w-lg">
-        <CardHeader variant="gradient" color="gray" className="mb-4 p-6">
-          <Typography variant="h6" color="white">
-            Edit User
-          </Typography>
+        <CardHeader >
         </CardHeader>
    {/* Add New Point Modal */}
    <AddNewPointModal
@@ -999,9 +1007,17 @@ const handleGroupOnPoints = (point) => {
               ) : (
                 <>
                   <Button onClick={handleEditClick}>Edit</Button>
+                  {console.log('latest',latestOrder._id)}
                   {(latestOrder.status === 'active' || latestOrder.status === 'leave') && (
                     <Button onClick={handleLeaveClick}>Leave</Button>
                   )}
+                  {/* Add the "Show Orders" button */}
+                  <Button
+                    onClick={() => navigate(`/dashboard/userOrder/${user._id}`,{})}
+                    color="blue"
+                  >
+                    Show Orders
+                  </Button>
                 </>
               )}
             </div>
@@ -1011,10 +1027,11 @@ const handleGroupOnPoints = (point) => {
               <LeaveSection
                 leaves={latestOrder.leave || []}
                 formatDate={formatDate}
-                handleLeaveInputChange={handleLeaveInputChange}
                 handleLeaveSubmit={handleLeaveSubmit}
                 handleEditLeave={handleEditLeave}
                 handleDeleteLeave={handleDeleteLeave}
+                plan={formData.plan}
+            
               />
             )}
           </CardBody>

@@ -28,6 +28,7 @@ import AccountPage from "./components/settings/Accounts";
 import NewOrders from "./pages/dashboard/Notify";
 import CreateCategory from "./pages/dashboard/CreateCategory";
 import GlobalSearch from "./pages/dashboard/GlobalSearch";
+import OrdersList from "./components/user/UserOrderPage";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -102,6 +103,11 @@ export const routes = [
         name: "Search",
         path: "/Global",
         element: <GlobalSearch />,
+      },
+      { icon: <UserCircleIcon {...icon} />,
+        name: "userOrder",
+        path: "/userOrder/:userId",
+        element: <OrdersList />,
       },
       {
         icon: <UserGroupIcon {...icon} />,

@@ -8,6 +8,7 @@ import {
   Avatar,
 } from "@material-tailwind/react";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import { Link, useNavigate } from "react-router-dom";
 
 // Custom CSS for shining effect
 const styles = {
@@ -17,9 +18,16 @@ const styles = {
     animation: "shine 1.5s infinite",
   },
 };
-
+const handleUpdate = (user) => {
+ 
+};
 const UserItem = ({ user }) => (
-  <ListItem className="flex items-center bg-red-900 space-x-3 p-1 rounded-lg shadow-sm mb-2 relative overflow-hidden">
+  <Link 
+  to="/dashboard/edit" 
+  state={{ user }}
+>
+  <ListItem className="flex items-center bg-red-900 space-x-3 p-1 rounded-lg shadow-sm mb-2 relative overflow-hidden" onClick={() => handleUpdate(user)}>
+    
     <div className="absolute inset-0" style={styles.shiningEffect}></div>
     <Avatar
       src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
@@ -35,6 +43,7 @@ const UserItem = ({ user }) => (
       </Typography>
     </div>
   </ListItem>
+  </Link>
 );
 
 // Adding keyframes for the shine effect
