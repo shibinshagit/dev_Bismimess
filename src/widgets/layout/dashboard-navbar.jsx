@@ -64,7 +64,7 @@ export function DashboardNavbar() {
       }
        ${
     // Styles for larger screens
-    "lg:border-2 border-gray-300 m-2 rounded-xl"
+    "lg:border-2 border-gray-300 lg:m-2 lg:rounded-xl"
   }`}
       blurred={fixedNavbar}
     >
