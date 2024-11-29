@@ -13,6 +13,7 @@ import {
   setSidenavColor,
   setSidenavType,
   setFixedNavbar,
+  setShowConnections,
 } from "@/context";
 import { useDispatch, useSelector } from "react-redux";
 import { attREf, logout } from "@/redux/reducers/authSlice";
@@ -48,7 +49,7 @@ function formatNumber(number, decPlaces) {
 
 export function Configurator() {
   const [controller, dispatcher] = useMaterialTailwindController();
-  const { openConfigurator, sidenavColor, sidenavType, fixedNavbar } = controller;
+  const { openConfigurator, sidenavColor, sidenavType, fixedNavbar, showConnections } = controller;
   const navigate = useNavigate();
   const [stars, setStars] = React.useState(0);
   const dispatch = useDispatch()
@@ -132,6 +133,8 @@ const zone ='Brototype'
           <XMarkIcon strokeWidth={2.5} className="h-5 w-5" />
         </IconButton>
       </div>
+     
+
       <div className="py-4 px-6">
        
         <div className="mb-12">

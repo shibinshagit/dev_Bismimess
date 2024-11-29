@@ -7,6 +7,7 @@ import {
   MenuHandler,
   IconButton,
   MenuList,
+  Switch,
 } from "@material-tailwind/react";
 import {
   PlusCircleIcon,
@@ -17,13 +18,14 @@ import {
   setOpenConfigurator,
   setSearchTerm,
   setOpenDeliveryForm,
+  setShowConnections,
 } from "@/context";
 import { useState } from "react";
 
 export function DashboardNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [controller, dispatch] = useMaterialTailwindController();
-  const { fixedNavbar } = controller;
+  const { fixedNavbar, showConnections } = controller;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
@@ -38,7 +40,7 @@ export function DashboardNavbar() {
   };
 
   const pageConfig = {
-    tables: { title: "Customer Data", showSearch: true, addButton: true },
+    tables: { title: "Customer Data", showSearch: true, addButton: true ,toggle: true},
     home: { showSearch: true, notifications: true, addButton: true },
     settings: { showSearch: true },
     Global: { showSearch: true },
@@ -50,7 +52,7 @@ export function DashboardNavbar() {
     notify: {title:" ", addButton: true },
   };
 
-  const { title, showSearch, addButton, notifications } = pageConfig[page] || {};
+  const { title, showSearch, addButton, notifications, toggle } = pageConfig[page] || {};
 
   return (
     <Navbar
@@ -59,13 +61,34 @@ export function DashboardNavbar() {
         fixedNavbar
           ? "sticky top-0 z-40 py-3 shadow-md shadow-blue-gray-500/5"
           : "sticky top-0 px-0 py-1 z-40 p-3"
-      }`}
+      }
+       ${
+    // Styles for larger screens
+    "lg:border-2 border-gray-300 m-2 rounded-xl"
+  }`}
       blurred={fixedNavbar}
     >
       <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
-        <Typography variant="h6" color="blue-gray" className="capitalize">
-          {title || page}
-        </Typography>
+      <Typography
+  variant="h6"
+  color="blue-gray"
+  className="capitalize flex items-center justify-between"
+>
+  <span>{title || page}</span>
+  {toggle && (
+    <div className="flex items-center space-x-2">
+      <Typography variant="h6" color="blue-gray">
+        Connections
+      </Typography>
+      <Switch
+        id="show-connections"
+        checked={showConnections}
+        onChange={() => setShowConnections(dispatch, !showConnections)}
+      />
+    </div>
+  )}
+</Typography>
+
 
         <div className="flex items-center">
           {showSearch && (
@@ -76,6 +99,7 @@ export function DashboardNavbar() {
               className="md:mr-4 md:w-56"
             />
           )}
+         
           {addButton && (
             <Menu>
               <MenuHandler>

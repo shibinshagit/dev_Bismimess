@@ -20,6 +20,7 @@ import { Download, PlusCircleIcon } from 'lucide-react';
 import { BaseUrl } from '@/constants/BaseUrl';
 import UserAvatar from '../../../public/img/user.jpg';
 
+
 // Location fetching temporary =============================================
 const handleAddLocation = (userId) => {
   if (!window.confirm('Do you want to update your location?')) {
@@ -63,7 +64,7 @@ export function Tables() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [controller] = useMaterialTailwindController();
-  const { searchTerm } = controller;
+const { searchTerm, showConnections } = controller;
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [filter, setFilter] = useState('All');
@@ -81,7 +82,7 @@ export function Tables() {
   const [reduce, setReduce] = useState(0);
   const [bill, setBill] = useState(0);
 
-  const [showConnections, setShowConnections] = useState(false); // New state variable
+  // const [showConnections, setShowConnections] = useState(true);
 
   const handleInvoiceDialog = (user) => {
     const totalLeaveDays = user.latestOrder?.leave.reduce((acc, leave) => acc + leave.numberOfLeaves, 0);
@@ -425,7 +426,7 @@ export function Tables() {
           />
         )}
       </td>
-        <td className={className}>
+      <td className={className} style={{ borderLeft: '2px solid black' }}>
           {new Date(orderEnd).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000 && (
             <button
               className="text-xs font-semibold text-blue-600"
@@ -450,7 +451,7 @@ export function Tables() {
   return (
     <div className="flex flex-col gap-1">
       {/* Toggle Switch */}
-      <div className="flex justify-between items-center ">
+      {/* <div className="flex justify-between items-center ">
  
       <Typography></Typography>
          
@@ -461,7 +462,7 @@ export function Tables() {
             onChange={(e) => setShowConnections(e.target.checked)}
           /> 
         </div>
-      </div>
+      </div> */}
 
       <CardBody className="overflow-x-scroll px-0 pt-0 pb-20">
         <table className="w-full min-w-[640px] table-auto">
@@ -515,7 +516,7 @@ export function Tables() {
                 <React.Fragment key={groupIndex}>
                   {/* Group Name Row */}
                   <tr>
-                    <td colSpan="7" className="bg-gray-700 text-white  font-semibold py-2 px-5 rounded-xl">
+                    <td colSpan="7" className="bg-black text-white  font-semibold py-2 px-3">
                       {groupData.groupName}
                     </td>
                   </tr>

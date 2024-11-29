@@ -49,12 +49,12 @@ export const routes = [
         path: "/leave",
         element: <TodaysLeave />,
       },
-      // {
-      //   icon: <Notebook {...icon} />,
-      //   name: "Leave",
-      //   path: "/delivery",
-      //   element: <UpcomingDelivery />,
-      // },
+      {
+        icon: <Notebook {...icon} />,
+        name: "Leave",
+        path: "/delivery",
+        element: <UpcomingDelivery />,
+      },
       {
         icon: <Send {...icon} />,
         name: "Expiry",
@@ -176,7 +176,7 @@ export const routes = [
     pages: [
       {
         icon: <ServerStackIcon {...icon} />,
-        name: "login",
+        name: " ",
         path: "/login",
         element: <DeliveryLogin/>,
       },

@@ -8,13 +8,14 @@ import {
   Input,
   Button,
   Typography,
+  Select,
+  Option,
 } from '@material-tailwind/react';
 import { CheckBadgeIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 export function Attendance() {
   const [users, setUsers] = useState([]);
   const [pointId] = useState('66c26676b43a45070b24e735'); 
-  // const [pointId] = useState('66d165903e98c9eddf35c5aa'); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedDate, setSelectedDate] = useState(
@@ -39,26 +40,7 @@ export function Attendance() {
   useEffect(() => {
     fetchUsers();
     // eslint-disable-next-line
-  }, [selectedDate]);
-
-  useEffect(() => {
-    determineCurrentMeal();
-    const interval = setInterval(determineCurrentMeal, 60000); // Update every minute
-    return () => clearInterval(interval);
-  }, []);
-
-  const determineCurrentMeal = () => {
-    const now = new Date();
-    const hour = now.getHours();
-
-    if (hour >= 4 && hour < 11) {
-      setCurrentMeal('Breakfast');
-    } else if (hour >= 11 && hour < 17) {
-      setCurrentMeal('Lunch');
-    } else {
-      setCurrentMeal('Dinner');
-    }
-  };
+  }, [selectedDate, currentMeal]);
 
   const fetchUsers = async () => {
     try {
@@ -357,30 +339,7 @@ export function Attendance() {
     setSuggestions([]);
   };
 
-  // Helper function to check if meal time has passed
-  const hasMealTimePassed = (meal) => {
-    const now = new Date();
-    const currentDate = stripTime(now);
-    const selectedDateObj = stripTime(new Date(selectedDate));
-
-    if (selectedDateObj < currentDate) {
-      // Selected date is in the past
-      return true;
-    } else if (selectedDateObj > currentDate) {
-      // Selected date is in the future
-      return false;
-    } else {
-      // Selected date is today, compare time
-      const currentHour = now.getHours();
-      if (meal === 'B') {
-        return currentHour >= 11; // Breakfast ends at 11 AM
-      } else if (meal === 'L') {
-        return currentHour >= 17; // Lunch ends at 5 PM
-      } else if (meal === 'D') {
-        return currentHour < 4; // Dinner ends at 4 AM
-      }
-    }
-  };
+  // Removed the hasMealTimePassed function since no restrictions are needed
 
   if (loading) {
     return (
@@ -399,28 +358,54 @@ export function Attendance() {
   }
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-col min-h-screen p-4 sm:p-6">
       {/* Header Section */}
-      <div className="w-full max-w-7xl fixed top-0 left-0 bg-white shadow-lg z-10 py-4 px-6 flex flex-col">
-        <div className="flex justify-between items-center">
+      <div className="w-full max-w-7xl mx-auto bg-white shadow-lg z-10 py-4 px-6 rounded-lg mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center">
           <Typography
             variant="h2"
             className="font-bold text-gray-800 text-2xl sm:text-3xl lg:text-4xl"
           >
-            Attendance - {currentMeal}
+            Attendance
           </Typography>
           <Button
             color="dark"
             onClick={syncChanges}
-            className="rounded-lg shadow-sm flex items-center"
+            className="mt-4 sm:mt-0 rounded-lg shadow-sm flex items-center"
             disabled={pendingChanges.length === 0}
           >
             Sync ({pendingChanges.length})
           </Button>
         </div>
-        {/* Search and Counts */}
-        <div className="mt-4 flex items-center">
-          <div className="relative flex-1">
+        {/* Meal Selector */}
+        <div className="mt-4 flex flex-col sm:flex-row items-center">
+          <div className="w-full sm:w-1/3 mb-4 sm:mb-0">
+            <Select
+              label="Select Meal"
+              value={currentMeal}
+              onChange={(value) => setCurrentMeal(value)}
+              className="w-full"
+            >
+              <Option value="Breakfast">Breakfast (4 AM - 11 AM)</Option>
+              <Option value="Lunch">Lunch (11 AM - 5 PM)</Option>
+              <Option value="Dinner">Dinner (5 PM - 4 AM)</Option>
+            </Select>
+          </div>
+          <div className="w-full sm:w-1/3 sm:mx-4 mb-4 sm:mb-0">
+            <Input
+              type="date"
+              size="lg"
+              label="Select Date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full rounded-lg shadow-sm"
+              inputProps={{
+                className:
+                  'border-gray-300 focus:border-blue-900 focus:ring-0 focus:outline-none',
+              }}
+            />
+          </div>
+          <div className="w-full sm:w-1/3 relative">
             <Input
               size="lg"
               label="Search user by name or phone"
@@ -441,50 +426,44 @@ export function Attendance() {
                 <XMarkIcon className="h-5 w-5" />
               </button>
             )}
-          </div>
-          <div className="ml-4 text-sm text-gray-600 flex space-x-4">
-            <Typography variant="small" className="font-medium">
-              T: {counts.deliveredMeals}/{counts.totalUsers}
-            </Typography>
-            <Typography variant="small" className="font-medium">
-              E: {counts.expiredUsers}
-            </Typography>
-            <Typography variant="small" className="font-medium">
-              L: {counts.leaveUsers}
-            </Typography>
+            {/* Suggestions Dropdown */}
+            {suggestions.length > 0 && (
+              <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-md mt-1 z-20">
+                {suggestions.map((suggestion) => (
+                  <div
+                    key={suggestion}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    {suggestion}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        {/* Date Picker */}
-        <div className="mt-4 flex items-center">
-          <Input
-            type="date"
-            size="lg"
-            label="Select Date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-full rounded-lg shadow-sm"
-            inputProps={{
-              className:
-                'border-gray-300 focus:border-blue-900 focus:ring-0 focus:outline-none',
-            }}
-          />
+        {/* Counts */}
+        <div className="mt-4 flex flex-wrap items-center text-sm text-gray-600 space-x-4">
+          <Typography variant="small" className="font-medium">
+            Delivered Meals: {counts.deliveredMeals}/{counts.totalUsers}
+          </Typography>
+          <Typography variant="small" className="font-medium">
+            Expired Users: {counts.expiredUsers}
+          </Typography>
+          <Typography variant="small" className="font-medium">
+            Leave Users: {counts.leaveUsers}
+          </Typography>
         </div>
       </div>
       {/* Table Section */}
-      <div className="w-full max-w-7xl mt-48 px-6">
-        <Card className="p-0 shadow-xl rounded-lg">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+        <Card className="p-4 shadow-xl rounded-lg overflow-x-auto">
           <table className="w-full bg-white rounded-lg">
-            <thead className="sticky top-[180px] bg-gray-100 z-10">
+            <thead className="sticky top-0 bg-gray-100 z-10">
               <tr className="text-left bg-gray-100 border-b">
-                <th className="px-4 py-2 text-blue-gray-700 font-semibold">
-                  Name
-                </th>
-                <th className="px-4 py-2 text-blue-gray-700 font-semibold">
-                  Phone
-                </th>
-                <th className="px-4 py-2 text-blue-gray-700 font-semibold">
-                  {currentMeal}
-                </th>
+                <th className="px-4 py-2 text-blue-gray-700 font-semibold">Name</th>
+                <th className="px-4 py-2 text-blue-gray-700 font-semibold">{currentMeal}</th>
+                <th className="px-4 py-2 text-blue-gray-700 font-semibold">Phone</th>
               </tr>
             </thead>
             <tbody>
@@ -503,27 +482,26 @@ export function Attendance() {
                     <tr
                       key={user._id}
                       className={`${
-                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white-50'
+                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                       }`}
                     >
                       <td className="px-4 py-2 text-blue-gray-900 font-medium">
                         {user.name}
                       </td>
-                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
-                        {user.phone}
-                      </td>
+                     
                       <td className="px-4 py-2 text-center">
                         <Button color="gray" disabled>
-                          NIL
+                          {statusLabels['NIL']}
                         </Button>
+                      </td>
+                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
+                        {user.phone}
                       </td>
                     </tr>
                   );
                 }
 
-                const orderStart = stripTime(
-                  new Date(latestOrder.orderStart)
-                );
+                const orderStart = stripTime(new Date(latestOrder.orderStart));
                 const orderEnd = stripTime(new Date(latestOrder.orderEnd));
 
                 if (
@@ -535,19 +513,20 @@ export function Attendance() {
                     <tr
                       key={user._id}
                       className={`${
-                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white-50'
+                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                       }`}
                     >
                       <td className="px-4 py-2 text-blue-gray-900 font-medium">
                         {user.name}
                       </td>
-                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
-                        {user.phone}
-                      </td>
+                     
                       <td className="px-4 py-2 text-center">
                         <Button color="black" disabled>
-                          Expired
+                          {statusLabels['expired']}
                         </Button>
+                      </td>
+                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
+                        {user.phone}
                       </td>
                     </tr>
                   );
@@ -563,19 +542,20 @@ export function Attendance() {
                     <tr
                       key={user._id}
                       className={`${
-                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white-50'
+                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                       }`}
                     >
                       <td className="px-4 py-2 text-blue-gray-900 font-medium">
                         {user.name}
                       </td>
-                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
-                        {user.phone}
-                      </td>
+                     
                       <td className="px-4 py-2 text-center">
                         <Button color="gray" disabled>
-                          NIL
+                          {statusLabels['NIL']}
                         </Button>
+                      </td>
+                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
+                        {user.phone}
                       </td>
                     </tr>
                   );
@@ -598,19 +578,20 @@ export function Attendance() {
                     <tr
                       key={user._id}
                       className={`${
-                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white-50'
+                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                       }`}
                     >
                       <td className="px-4 py-2 text-blue-gray-900 font-medium">
                         {user.name}
                       </td>
-                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
-                        {user.phone}
-                      </td>
+                     
                       <td className="px-4 py-2 text-center">
                         <Button color="yellow" disabled>
-                          Leave
+                          {statusLabels['leave']}
                         </Button>
+                      </td>
+                      <td className="px-4 py-2 text-blue-gray-900 font-medium">
+                        {user.phone}
                       </td>
                     </tr>
                   );
@@ -638,23 +619,20 @@ export function Attendance() {
                   ? pendingChange.newStatus
                   : attendanceStatus;
 
-                // Determine if the meal time has passed
-                const isMealTimePassed = hasMealTimePassed(mealCode);
+                // Removed the meal time check to allow modifications at any time
 
                 return (
                   <tr
                     key={user._id}
                     className={`${
-                      index % 2 === 0 ? 'bg-gray-50' : 'bg-white-50'
+                      index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                     }`}
                   >
                     <td className="px-4 py-2 text-blue-gray-900 font-medium">
                       {user.name}
                     </td>
-                    <td className="px-4 py-2 text-blue-gray-900 font-medium">
-                      {user.phone}
-                    </td>
-                    <td className="px-4 py-2 text-center">
+                 
+                    <td className=" px-4 py-2 text-center">
                       {['packed', 'delivered'].includes(displayStatus) ? (
                         <Button
                           color={getStatusColor(displayStatus)}
@@ -668,7 +646,6 @@ export function Attendance() {
                               : handleUndo(user._id, mealCode)
                           }
                           className="flex items-center justify-center space-x-1 rounded-lg shadow-sm"
-                          disabled={isMealTimePassed}
                         >
                           <CheckBadgeIcon className="h-5 w-5" />
                           <span>{statusLabels[displayStatus]}</span>
@@ -683,6 +660,9 @@ export function Attendance() {
                           {statusLabels[displayStatus]}
                         </Button>
                       )}
+                    </td>
+                    <td className="px-4 py-2 text-blue-gray-900 font-medium">
+                      {user.phone}
                     </td>
                   </tr>
                 );
