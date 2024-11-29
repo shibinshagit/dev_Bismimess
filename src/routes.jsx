@@ -50,12 +50,6 @@ export const routes = [
         element: <TodaysLeave />,
       },
       {
-        icon: <Notebook {...icon} />,
-        name: "Leave",
-        path: "/delivery",
-        element: <UpcomingDelivery />,
-      },
-      {
         icon: <Send {...icon} />,
         name: "Expiry",
         path: "/Expiry",
@@ -82,6 +76,12 @@ export const routes = [
       //   path: "/kitchen",
       //   element: <Kitchen />,
       // },
+       {
+        icon: <Notebook {...icon} />,
+        name: "Leave",
+        path: "/delivery",
+        element: <UpcomingDelivery />,
+      },
       {
         icon: <UserCircleIcon {...icon} />,
         name: "add",
