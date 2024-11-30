@@ -192,9 +192,10 @@ function OrdersList() {
         open={showAddOrderModal}
         handler={() => setShowAddOrderModal(false)}
         size="sm"
+        className="overflow-visible"
       >
-        <DialogHeader>{isEditingOrder ? 'Edit Order' : 'Add New Order'}</DialogHeader>
-        <DialogBody>
+        <DialogHeader className="sticky top-0 z-10 bg-white">{isEditingOrder ? 'Edit Order' : 'Add New Order'}</DialogHeader>
+        <DialogBody className="overflow-y-auto max-h-[70vh]">
           {/* Order Form */}
           <div className="mb-4">
             <Typography variant="small" className="font-semibold mb-2">
@@ -319,7 +320,7 @@ function OrdersList() {
             />
           </div>
         </DialogBody>
-        <DialogFooter>
+        <DialogFooter className="sticky bottom-0 z-10 bg-white">
           <Button
             variant="text"
             color="red"
