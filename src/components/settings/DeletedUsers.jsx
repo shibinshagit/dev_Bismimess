@@ -9,11 +9,13 @@ import {
   ListItem,
   Avatar,
   Button,
+  Input,
 } from "@material-tailwind/react";
-import { TrashIcon } from 'lucide-react';
+import { TrashIcon, SearchIcon } from 'lucide-react';
 
 const DeletedUsers = () => {
   const [deletedUsers, setDeletedUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchDeletedUsers = async () => {
     try {
@@ -61,17 +63,43 @@ const DeletedUsers = () => {
     }
   };
 
+  // Filtered users based on search term
+  const filteredUsers = deletedUsers.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.point.place.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="container mx-auto">
       <Card className="overflow-hidden shadow-lg">
         <CardBody>
-          {deletedUsers.length === 0 ? (
+          {/* Search and Count Container */}
+          <div className="mb-4 flex flex-col sm:flex-row items-center justify-between">
+            {/* Total Count */}
+            <Typography variant="h6" className="mb-2 sm:mb-0">
+              Total Deleted Users: {deletedUsers.length}
+            </Typography>
+            {/* Search Input */}
+            <div className="w-full sm:w-1/3">
+              <Input
+                icon={<SearchIcon className="w-5 h-5 text-gray-500" />}
+                placeholder="Search by name, phone, or place"
+                variant="static"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          {filteredUsers.length === 0 ? (
             <Typography className="text-center text-lg">No deleted users found.</Typography>
           ) : (
             <List>
-              {deletedUsers.map((user) => (
-                <ListItem key={user._id} className="flex flex-col sm:flex-row items-center justify-between border-b last:border-b-0">
-                  <div className="flex items-center space-x-3 mb-2 sm:mb-0">
+              {filteredUsers.map((user) => (
+                <ListItem key={user._id} className="flex flex-col sm:flex-row items-center justify-between border-b last:border-b-0 py-2">
+                  <div className="flex items-center space-x-3 mb-2 sm:mb-0 w-full sm:w-auto">
                     <Avatar
                       src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
                       alt={user.name}
@@ -89,11 +117,12 @@ const DeletedUsers = () => {
                       </Typography>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 w-full sm:w-auto justify-end">
                     <Button
                       color="green"
                       size="sm"
                       onClick={() => handleRestoreUser(user._id)}
+                      className="w-full sm:w-auto"
                     >
                       Restore
                     </Button>
@@ -101,6 +130,7 @@ const DeletedUsers = () => {
                       color="red"
                       size="sm"
                       onClick={() => handlePermanentDeleteUser(user._id)}
+                      className="w-full sm:w-auto"
                     >
                       <TrashIcon className="h-5 w-5" />
                     </Button>

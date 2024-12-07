@@ -12,7 +12,7 @@ import {
 import {
   PlusCircleIcon,
 } from "@heroicons/react/24/solid";
-import { Bell, MenuIcon } from "lucide-react";
+import { Bell, MenuIcon, SettingsIcon } from "lucide-react";
 import {
   useMaterialTailwindController,
   setOpenConfigurator,
@@ -33,8 +33,10 @@ export function DashboardNavbar() {
   const handleSearch = (event) => {
     const value = event.target.value;
     setSearchTerm(dispatch, value);
-
-    if (value.startsWith("/") && !pathname.includes("globalSearch")) {
+  };
+  
+  const handleFocus = () => {
+    if (!pathname.includes("globalSearch")) {
       navigate("Global");
     }
   };
@@ -92,41 +94,43 @@ export function DashboardNavbar() {
 
         <div className="flex items-center">
           {showSearch && (
-            <Input
-              type="text"
-              label="Search"
-              onChange={handleSearch}
-              className="md:mr-4 md:w-56"
-            />
+           <Input
+           type="text"
+           label="Search"
+           onChange={handleSearch}
+           onFocus={handleFocus}
+           className="md:mr-4 md:w-56"
+         />
           )}
          
-          {addButton && (
-            <Menu>
-              <MenuHandler>
-                <IconButton
-                  variant="text"
-                  color="blue-gray"
-                  onClick={() => navigate("add")}
-                >
-                  <PlusCircleIcon  onClick={() => navigate("add")} className="h-7 w-7 text-blue-gray-500" />
-                </IconButton>
-              </MenuHandler>
-            </Menu>
-          )}
+         {addButton && (
+  <div className="hidden lg:block"> {/* Hidden by default, visible only on lg screens and up */}
+    <Menu>
+      <MenuHandler>
+        <IconButton
+          variant="text"
+          color="blue-gray"
+        
+        >
+          <PlusCircleIcon   onClick={() => navigate("add")} className="h-7 w-7 text-blue-gray-500" />
+        </IconButton>
+      </MenuHandler>
+    </Menu>
+  </div>
+)}
+
           {notifications && (
             <Menu>
               <MenuHandler>
                 <IconButton
                   variant="text"
                   color="blue-gray"
-                  onClick={() => navigate("/add")}
+                  
                 >
-                  <Bell className="h-6 w-6 text-blue-gray-500" />
+                  <Bell onClick={() => navigate("notify")}  className="h-6 w-6 text-blue-gray-500" />
                 </IconButton>
               </MenuHandler>
-              <MenuList>
-                {/* Add dropdown menu items here if necessary */}
-              </MenuList>
+             
             </Menu>
           )}
           <IconButton
@@ -134,7 +138,7 @@ export function DashboardNavbar() {
             color="blue-gray"
             onClick={() => setOpenConfigurator(dispatch, true)}
           >
-            <MenuIcon className="h-7 w-7 text-blue-gray-500" />
+            <SettingsIcon className="h-6 w-6  text-blue-gray-500" />
           </IconButton>
         </div>
       </div>

@@ -9,7 +9,7 @@ import {
   TruckIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Settings, Tables, UpcomingDelivery } from "@/pages/dashboard";
+import { Home, Pendings, Tables, UpcomingDelivery } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 import Add from "./pages/dashboard/add";
 import Edit from "./pages/dashboard/edit";
@@ -19,16 +19,17 @@ import Marker from "./pages/attendance/marker";
 import Delivery from "./layouts/delivery";
 import Points from "./pages/delivery/points";
 import DeliveryLogin from "./pages/delivery/deliveryLogin";
-import { Notebook, Send, SettingsIcon } from "lucide-react";
+import { Notebook, PenBox, Send, SettingsIcon } from "lucide-react";
 import { TodaysLeave } from "./pages/dashboard/TodaysLeave";
 import { ExpiredUsers } from "./pages/dashboard/ExpiredUsers";
 import { Attendance } from "./pages/dashboard/Attendence";
 import DeletedUsers from "./components/settings/DeletedUsers";
 import AccountPage from "./components/settings/Accounts";
-import NewOrders from "./pages/dashboard/Notify";
 import CreateCategory from "./pages/dashboard/CreateCategory";
 import GlobalSearch from "./pages/dashboard/GlobalSearch";
 import OrdersList from "./components/user/UserOrderPage";
+import NewOrders from "./components/settings/NewOrders";
+import Notify from "./pages/dashboard/Notify";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -55,10 +56,10 @@ export const routes = [
         path: "/Expiry",
         element: <ExpiredUsers />,
       }, {
-        icon: <SettingsIcon {...icon} />,
-        name: "settings",
-        path: "/settings",
-        element: <Settings/>,
+        icon: <PenBox {...icon} />,
+        name: "Pendings",
+        path: "/Pendings",
+        element: <Pendings/>,
       }, {
         icon: <ServerStackIcon {...icon} />,
         name: "deletedUsers",
@@ -97,7 +98,13 @@ export const routes = [
         icon: <UserCircleIcon {...icon} />,
         name: "Notify",
         path: "/notify",
-        element: <NewOrders />,
+        element: <Notify />,
+      },
+      {
+        icon: <UserCircleIcon {...icon} />,
+        name: "NewOrders",
+        path: "/NewOrders",
+        element: <NewOrders/>,
       },
      { icon: <UserCircleIcon {...icon} />,
         name: "Search",

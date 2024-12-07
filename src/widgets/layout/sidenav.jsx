@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import {
   Avatar,
@@ -8,10 +8,12 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { useMaterialTailwindController, setOpenSidenav } from "@/context";
+import { PlusCircleIcon } from "lucide-react";
 
 export function Sidenav({ brandImg, brandName, routes }) {
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavColor, sidenavType, openSidenav } = controller;
+  const navigate = useNavigate();
   const sidenavTypes = {
     dark: "bg-gradient-to-br from-gray-800 to-gray-900",
     white: "bg-white shadow-sm",
@@ -94,39 +96,56 @@ export function Sidenav({ brandImg, brandName, routes }) {
         </div>
       </aside>
 
-      {/* Bottom navigation for mobile view */}
-      <nav
-        className={`${sidenavTypes[sidenavType]} fixed bottom-0 inset-x-0 z-50 h-16 w-full flex justify-around items-center border-t border-blue-gray-100 xl:hidden`}
-      >
-        {routes.slice(0,1).map(({ layout, pages }, key) =>
-          pages.slice(0,4).map(({ icon, name, path }) => (
-            <NavLink key={name} to={`/${layout}${path}`}>
-              {({ isActive }) => (
-                <Button
-                  variant="text"
-                  color={
-                    isActive
-                      ? sidenavColor
-                      : sidenavType === "dark"
-                      ? "white"
-                      : "blue-gray"
-                  }
-                  className="flex flex-col items-center"
-                >
-                  {icon}
-                  <Typography
-                    variant="small"
-                    color="inherit"
-                    className="font-medium capitalize"
-                  >
-                    {name}
-                  </Typography>
-                </Button>
-              )}
-            </NavLink>
-          ))
-        )}
-      </nav>
+     {/* Bottom navigation for mobile view */}
+<nav
+  className={`${sidenavTypes[sidenavType]} fixed bottom-0 inset-x-0 z-50 h-16 w-full flex justify-around items-center border-t border-blue-gray-100 xl:hidden`}
+>
+  {/* Loop through the navigation buttons */}
+  {routes.slice(0,1).map(({ layout, pages }, key) =>
+  pages.slice(0,4).map(({ icon, name, path }, index) => (
+    <NavLink
+      key={name}
+      to={`/${layout}${path}`}
+    >
+      {({ isActive }) => (
+        <Button
+          variant="text"
+          color={
+            isActive
+              ? sidenavColor
+              : sidenavType === "dark"
+              ? "white"
+              : "blue-gray"
+          }
+          className={`flex flex-col items-center ${index === 2 ? "ml-3 " : index === 3 ? "pl-3 " :""}`} // Gap only on the 3rd button
+        >
+          {icon}
+          <Typography
+            variant="small"
+            color="inherit"
+            className="font-medium capitalize"
+          >
+            {name}
+          </Typography>
+        </Button>
+      )}
+    </NavLink>
+  ))
+)}
+
+
+  {/* Floating Action Button - Styled like OLX */}
+<div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+  <button
+    className="h-12 w-12 bg-gray-900 hover:bg-dark-600 text-white rounded-full shadow-md flex items-center justify-center transition duration-200 ease-in-out"
+   
+  >
+    <PlusCircleIcon  onClick={() => navigate("add")} className="h-6 w-6" />
+  </button>
+</div>
+
+</nav>
+
     </>
   );
 }

@@ -1,178 +1,252 @@
-// src/pages/NewOrders.jsx
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from "@heroicons/react/24/solid";
 import { BaseUrl } from "@/constants/BaseUrl";
-import { useNavigate } from "react-router-dom";
+const TODAY = new Date().toISOString().split("T")[0];
 
-const NewOrders = () => {
-  const [newOrders, setNewOrders] = useState([]);
-  const [newUsersCount, setNewUsersCount] = useState(0);
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
+
+const Notify = () => {
+  const [notes, setNotes] = useState([]);
+  const [showExpired, setShowExpired] = useState(false); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  // State for Add Note Modal
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newNoteData, setNewNoteData] = useState({
+    toWhom: "",
+    matter: "",
+    date: TODAY,
+    markAsRead: false
+  });
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [ordersPerPage] = useState(10); // Adjust as needed
-
-  const navigate = useNavigate();
+  const fetchNotes = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await axios.get(`${BaseUrl}/api/notes`);
+      setNotes(res.data);
+    } catch (err) {
+      console.error("Error fetching notes:", err);
+      setError("Failed to fetch notes.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchNewOrders = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${BaseUrl}/api/orders/new`);
-        setNewOrders(response.data.newOrders);
-        setNewUsersCount(response.data.newUsersCount);
-      } catch (err) {
-        console.error("Error fetching new orders:", err);
-        setError("Failed to fetch new orders.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNewOrders();
+    fetchNotes();
   }, []);
 
-  // Calculate the current orders to display
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = newOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const handleMarkAsRead = async (id, currentNote) => {
+    try {
+      const updated = { ...currentNote, markAsRead: true };
+      await axios.put(`${BaseUrl}/api/notes/${id}`, updated);
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note._id === id ? { ...note, markAsRead: true } : note
+        )
+      );
+    } catch (err) {
+      console.error("Error marking as read:", err);
+    }
+  };
 
-  // Handle page change
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // Filter notes based on whether we are showing expired or today's
+  const filteredNotes = notes.filter(note => {
+    if (showExpired) {
+      // expired means note.date < TODAY
+      return note.date < TODAY;
+    } else {
+      // show today's notes only
+      return note.date === TODAY;
+    }
+  });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <div className="w-10 h-10 border-4 border-blue-500 border-dotted rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  const openAddNoteModal = () => {
+    setNewNoteData({
+      toWhom: "",
+      matter: "",
+      date: TODAY,
+      markAsRead: false
+    });
+    setShowAddModal(true);
+  };
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <p className="text-red-600 text-lg font-semibold">{error}</p>
-      </div>
-    );
-  }
+  const closeAddNoteModal = () => {
+    setShowAddModal(false);
+  };
+
+  const handleNewNoteChange = (e) => {
+    const { name, value } = e.target;
+    setNewNoteData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddNote = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${BaseUrl}/api/notes`, newNoteData);
+      await fetchNotes(); // Refresh the list
+      closeAddNoteModal();
+    } catch (err) {
+      console.error("Error adding note:", err);
+      alert("Failed to add note. Please try again.");
+    }
+  };
 
   return (
-    <div className="bg-gray-900 min-h-screen mb-16">
+    <div className="min-h-screen bg-gray-100 p-4">
       {/* Header */}
-      <h2 className="text-xl text-white font-semibold text-center p-2">New Orders - Last 3 Days</h2>
-      <h3 className="text-md text-white font-semibold text-center p-2">{newUsersCount} users</h3>
+      <header className="flex flex-wrap items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold text-gray-800">
+          {showExpired ? "Expired Notifications" : "Today's Notifications"}
+        </h1>
+        <div className="flex space-x-2">
+          <button
+            onClick={openAddNoteModal}
+            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded shadow-sm text-sm"
+          >
+            Add Note
+          </button>
+          <button
+            onClick={() => setShowExpired(!showExpired)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded shadow-sm text-sm"
+          >
+            {showExpired ? "Show Today's" : "Show Expired"}
+          </button>
+        </div>
+      </header>
 
-      
+      {/* Loading and error states */}
+      {loading && <p className="text-gray-600">Loading notes...</p>}
+      {error && <p className="text-red-500">{error}</p>}
 
-      {/* Orders Table */}
-      {newOrders.length === 0 ? (
-        <p className="text-center text-lg font-semibold">No new orders in the last 3 days.</p>
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border rounded-lg mb-6 text-white">
-              <thead className="bg-gray-200 text-gray-700">
-                <tr>
-                <th className="py-3 px-6 text-left">User Name</th>
-                  <th className="py-3 px-6 text-left">Point Name</th>
-                  <th className="py-3 px-6 text-left">Phone</th>
-                  <th className="py-3 px-6 text-left">Plan</th>
-                  <th className="py-3 px-6 text-left">Order Start</th>
-                  <th className="py-3 px-6 text-left">Order End</th>
-                  <th className="py-3 px-6 text-left">Status</th>
-                  <th className="py-3 px-6 text-left">Payment Status</th>
-                  <th className="py-3 px-6 text-left">Payment Method</th>
-                  <th className="py-3 px-6 text-left">Payment ID</th>
-                  <th className="py-3 px-6 text-left">Veg</th>
-                  <th className="py-3 px-6 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-600 text-sm">
-                {currentOrders.map((order) => (
-                  <tr key={order._id} className={`border-b bg-gray-50 even:bg-gray-100 ${order.paymentStatus === 'pending' ? 'bg-red-500 text-white' : ''}`}>
-                    <td className="py-4 px-6">{order.userName}</td>
-                    <td className="py-4 px-6">{order.pointName || 'N/A'}</td>
-                    <td className="py-4 px-6">{order.userPhone}</td>
-                    <td className="py-4 px-6">
-                    {console.log('order:',order)}  {order.plan.map((meal, index) => (
-                        <span
-                          key={index}
-                          className={` px-2 py-1 rounded-full text-xs font-semibold ${
-                            meal === 'B'
-                              ? 'bg-blue-100 text-blue-800'
-                              : meal === 'L'
-                              ? 'bg-green-100 text-green-800'
-                              : meal === 'D'
-                              ? 'bg-orange-100 text-gray-800'
-                              : 'bg-gray-100 text-gray-800'
-                          } mr-1`}
-                        >
-                          {meal}
-                        </span>
-                      ))}
-                    </td>
-                    <td className="py-4 px-6">{new Date(order.orderStart).toLocaleDateString()}</td>
-                    <td className="py-4 px-6">{new Date(order.orderEnd).toLocaleDateString()}</td>
-                    <td className="py-4 px-6 flex items-center">
-                      {order.status === 'expired' ? (
-                        <XCircleIcon className="w-5 h-5 text-red-500" />
-                      ) : (
-                        <CheckCircleIcon className="w-5 h-5 text-green-500" />
+      {/* No notes message */}
+      {!loading && !filteredNotes.length && (
+        <div className="text-center mt-10 text-gray-600">
+          {showExpired
+            ? "No expired notifications found."
+            : "No notifications for today."}
+        </div>
+      )}
+
+      {/* Notes list */}
+      <div className="space-y-4">
+        {filteredNotes.map((note) => {
+          const isUnread = !note.markAsRead;
+          return (
+            <div
+              key={note._id}
+              className={classNames(
+                "rounded-md p-4 bg-white shadow-sm border",
+                isUnread ? "border-blue-300" : "border-gray-300"
+              )}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span
+                      className={classNames(
+                        "text-sm font-medium",
+                        isUnread ? "text-gray-800 font-semibold" : "text-gray-600"
                       )}
-                      <span className="py-8 capitalize">{order.status || 'N/A'}</span>
-                    </td>
-                    <td className="py-4 px-6 capitalize">{order.paymentStatus || 'N/A'}</td>
-                    <td className="py-4 px-6">
-                      {order.paymentMethod || 'N/A'}
-                      {order.paymentMethod === 'Online' && (
-                        <InformationCircleIcon className="w-4 h-4 text-blue-500 inline-block ml-1" />
-                      )}
-                    </td>
-                    <td className="py-4 px-6">{order.paymentId || 'N/A'}</td>
-                    <td className="py-4 px-6">{order.isVeg ? 'Yes' : 'No'}</td>
-                    <td className="py-4 px-6">
-                      <button
-                        className="text-blue-500 hover:underline"
-                        onClick={() => navigate('/dashboard/edit', { state: { user: order } })}
-                      >{console.log(order)}
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex justify-center">
-            <nav>
-              <ul className="inline-flex -space-x-px">
-                {Array.from({ length: Math.ceil(newOrders.length / ordersPerPage) }, (_, i) => (
-                  <li key={i}>
-                    <button
-                      onClick={() => paginate(i + 1)}
-                      className={`px-4 py-2 ml-0 leading-tight border ${
-                        currentPage === i + 1
-                          ? 'text-blue-600 bg-blue-50 border-blue-300'
-                          : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700'
-                      }`}
                     >
-                      {i + 1}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+                      To: {note.toWhom}
+                    </span>
+                    {!note.markAsRead && (
+                      <span className="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                        Unread
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    className={classNames(
+                      "mt-1 text-sm",
+                      isUnread ? "text-gray-900 font-medium" : "text-gray-700"
+                    )}
+                  >
+                    {note.matter}
+                  </p>
+                </div>
+                {/* Mark as read button if unread */}
+                {isUnread && (
+                  <button
+                    onClick={() => handleMarkAsRead(note._id, note)}
+                    className="ml-4 inline-flex items-center text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    Mark as read
+                  </button>
+                )}
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                Date: {note.date}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add Note Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white rounded shadow-lg w-full max-w-md p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800">Add Note</h2>
+            <form onSubmit={handleAddNote} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">To Whom</label>
+                <input
+                  type="text"
+                  name="toWhom"
+                  value={newNoteData.toWhom}
+                  onChange={handleNewNoteChange}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 mt-1 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Matter</label>
+                <textarea
+                  name="matter"
+                  value={newNoteData.matter}
+                  onChange={handleNewNoteChange}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 mt-1 focus:outline-none focus:border-blue-500"
+                ></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={newNoteData.date}
+                  onChange={handleNewNoteChange}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 mt-1 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="flex items-center justify-end space-x-2 mt-4">
+                <button
+                  type="button"
+                  onClick={closeAddNoteModal}
+                  className="px-3 py-1.5 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Add
+                </button>
+              </div>
+            </form>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
 };
 
-export default NewOrders;
+export default Notify;
