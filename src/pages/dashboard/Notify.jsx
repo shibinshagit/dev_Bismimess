@@ -74,7 +74,7 @@ const Notify = () => {
     if (showRead) {
       return note.markAsRead; // Show all read notes
     } else {
-      return note.date === TODAY && !note.markAsRead; // Unread notes for today
+      return note.date >= TODAY && !note.markAsRead; // Unread notes for today
     }
   });
 
@@ -124,9 +124,17 @@ const Notify = () => {
             To: {note.toWhom}
           </span>
           {!note.markAsRead && (
-            <span className="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-              Unread
-            </span>
+       
+       <span
+       className={`inline-block text-xs px-2 py-0.5 rounded-full ${
+         note.date === TODAY
+           ? "bg-red-100 text-red-700"
+           : "bg-blue-100 text-blue-700"
+       }`}
+     >
+       {note.date === TODAY ? "Today" : "upcoming" }
+     </span>
+     
           )}
         </div>
         <p
@@ -138,14 +146,15 @@ const Notify = () => {
           {note.matter}
         </p>
       </div>
-      {!showRead && (
-        <button
-          onClick={() => handleMarkAsRead(note._id, note)}
-          className="ml-4 inline-flex items-center text-sm font-medium text-blue-600 hover:underline"
-        >
-          Mark as Read
-        </button>
-      )}
+      {!showRead && note.date === TODAY && (
+  <button
+    onClick={() => handleMarkAsRead(note._id, note)}
+    className="ml-4 inline-flex items-center text-sm font-medium text-blue-600 hover:underline"
+  >
+    Mark as done
+  </button>
+)}
+
     </div>
     <div className="mt-2 text-xs text-gray-500">
       Date: {note.date}

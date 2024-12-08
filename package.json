@@ -34,6 +34,7 @@
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.12",
     "sweetalert2": "^11.12.3",
+    "twilio": "^5.3.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

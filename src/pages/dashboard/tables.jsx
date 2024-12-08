@@ -85,8 +85,16 @@ const { searchTerm, showConnections } = controller;
   // const [showConnections, setShowConnections] = useState(true);
 
   const handleInvoiceDialog = (user) => {
-    const totalLeaveDays = user.latestOrder?.leave.reduce((acc, leave) => acc + leave.numberOfLeaves, 0);
+    const totalLeaveDays = user.latestOrder?.leave.reduce((acc, leave) => {
+      const startDate = new Date(leave.start);
+      const endDate = new Date(leave.end);
+      const numberOfLeaves =
+        Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+      return acc + numberOfLeaves;
+    }, 0);
+    
     setTotalLeave(totalLeaveDays);
+    
     setSelectedUser(user);
 
     const planLength = user?.latestOrder?.plan?.length;
@@ -552,7 +560,14 @@ const { searchTerm, showConnections } = controller;
   </Typography>
 
   {showLeaves &&
-    selectedUser?.latestOrder?.leave?.map((leave) => (
+  selectedUser?.latestOrder?.leave?.map((leave) => {
+    const startDate = new Date(leave.start);
+    const endDate = new Date(leave.end);
+    // Calculate the difference in days
+    const numberOfLeaves =
+      Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    return (
       <div
         key={leave._id}
         className="m-3 bg-gray-50 rounded-lg shadow-sm border border-gray-200"
@@ -562,12 +577,12 @@ const { searchTerm, showConnections } = controller;
           color="gray-700"
           className="bg-gray-100 p-3 rounded-md text-sm"
         >
-          {`Start: ${new Date(leave.start).toLocaleDateString()} | End: ${new Date(
-            leave.end
-          ).toLocaleDateString()} | Days: ${leave.numberOfLeaves}`}
+          {`Start: ${startDate.toLocaleDateString()} | End: ${endDate.toLocaleDateString()} | Days: ${numberOfLeaves}`}
         </Typography>
       </div>
-    ))}
+    );
+  })}
+
 
   <Input
     type="number"
