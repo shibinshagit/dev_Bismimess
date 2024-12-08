@@ -3,11 +3,7 @@ import axios from "axios";
 import { BaseUrl } from "@/constants/BaseUrl";
 import io from 'socket.io-client';
 
-// Correct URL: only use one protocol (wss://)
-const socket = io(BaseUrl, {
-  transports: ["websocket", "polling"], // Ensure fallback support for polling
-  secure: true,
-});
+const socket = io(BaseUrl);
 const TODAY = new Date().toISOString().split("T")[0];
 
 function classNames(...classes) {

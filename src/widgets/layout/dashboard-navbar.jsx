@@ -20,11 +20,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { BaseUrl } from "@/constants/BaseUrl"; // If your BaseUrl is defined here
 import io from 'socket.io-client';
-const socket = io(BaseUrl, {
-  transports: ["websocket", "polling"], // Ensure fallback support for polling
-  secure: true,
-});
-
+const socket = io(BaseUrl);
 
 
 export function DashboardNavbar() {
