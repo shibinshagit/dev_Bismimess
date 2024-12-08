@@ -20,7 +20,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { BaseUrl } from "@/constants/BaseUrl"; // If your BaseUrl is defined here
 import io from 'socket.io-client';
-const socket = io(BaseUrl);
+const socket = io('https://admin.bismimess.online', {
+  transports: ["websocket"],
+  debug: true,
+    });
 
 
 export function DashboardNavbar() {

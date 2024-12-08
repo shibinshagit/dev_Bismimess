@@ -3,7 +3,10 @@ import axios from "axios";
 import { BaseUrl } from "@/constants/BaseUrl";
 import io from 'socket.io-client';
 
-const socket = io(BaseUrl);
+const socket = io('https://admin.bismimess.online', {
+  transports: ["websocket"],
+  debug: true,
+    });
 const TODAY = new Date().toISOString().split("T")[0];
 
 function classNames(...classes) {
