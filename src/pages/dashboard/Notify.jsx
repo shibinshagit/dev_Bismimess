@@ -3,7 +3,8 @@ import axios from "axios";
 import { BaseUrl } from "@/constants/BaseUrl";
 import io from 'socket.io-client';
 
-const socket = io(BaseUrl);
+// Correct URL: only use one protocol (wss://)
+const socket = io("wss://admin.bismimess.online");
 const TODAY = new Date().toISOString().split("T")[0];
 
 function classNames(...classes) {
