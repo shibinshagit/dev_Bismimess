@@ -4,7 +4,7 @@ import { BaseUrl } from "@/constants/BaseUrl";
 import io from 'socket.io-client';
 
 // Correct URL: only use one protocol (wss://)
-const socket = io("wss://admin.bismimess.online", {
+const socket = io(BaseUrl, {
   transports: ["websocket", "polling"], // Ensure fallback support for polling
   secure: true,
 });
