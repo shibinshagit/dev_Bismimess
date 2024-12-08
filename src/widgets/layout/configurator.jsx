@@ -63,6 +63,40 @@ export function Configurator() {
   const { openConfigurator, sidenavColor, sidenavType, fixedNavbar, showConnections } = controller;
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const TODAY = new Date().toISOString().split("T")[0];
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newNoteData, setNewNoteData] = useState({
+    toWhom: "",
+    matter: "",
+    date: TODAY,
+    markAsRead: false
+  });
+  const handleAddNote = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${BaseUrl}/api/notes`, newNoteData);
+      closeAddNoteModal();
+    } catch (err) {
+      console.error("Error adding note:", err);
+      alert("Failed to add note. Please try again.");
+    }
+  };
+  const handleNewNoteChange = (e) => {
+    const { name, value } = e.target;
+    setNewNoteData((prev) => ({ ...prev, [name]: value }));
+  };
+  const closeAddNoteModal = () => {
+    setShowAddModal(false);
+  };
+  const openAddNoteModal = () => {
+    setNewNoteData({
+      toWhom: "",
+      matter: "",
+      date: TODAY,
+      markAsRead: false
+    });
+    setShowAddModal(true);
+  };
   const [stars, setStars] = useState(0);
 
   const handleLogout = () => {
@@ -212,11 +246,73 @@ export function Configurator() {
                   Transaction & Payment
                 </Link>
               </ListItem>
+              <button
+  onClick={openAddNoteModal}
+  className="bg-gradient-to-r from-teal-500 to-teal-800 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm"
+>
+  Add Notification +
+</button>
+
               {/* Add more settings links as needed */}
             </List>
           </CardBody>
         </Card>
-
+        {showAddModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white rounded shadow-lg w-full max-w-md p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800">Add Note</h2>
+            <form onSubmit={handleAddNote} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">To Whom</label>
+                <input
+                  type="text"
+                  name="toWhom"
+                  value={newNoteData.toWhom}
+                  onChange={handleNewNoteChange}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 mt-1 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Matter</label>
+                <textarea
+                  name="matter"
+                  value={newNoteData.matter}
+                  onChange={handleNewNoteChange}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 mt-1 focus:outline-none focus:border-blue-500"
+                ></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={newNoteData.date}
+                  onChange={handleNewNoteChange}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 mt-1 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="flex items-center justify-end space-x-2 mt-4">
+                <button
+                  type="button"
+                  onClick={closeAddNoteModal}
+                  className="px-3 py-1.5 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Add
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
         {/* Attendance Section */}
         <Card className="bg-gray-50 dark:bg-gray-700">
           <CardBody>
