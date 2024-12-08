@@ -164,7 +164,7 @@ export function Configurator() {
             <List>
               <ListItem>
                 <Link 
-                  to="/dashboard/notify" 
+                  to="/dashboard/NewOrders" 
                   className="flex items-center gap-2 text-red-500 hover:underline"
                   onClick={handleLinkClick}
                 >
