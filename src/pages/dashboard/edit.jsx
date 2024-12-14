@@ -696,24 +696,24 @@ const handleGroupOnPoints = (point) => {
       </MenuHandler>
       </div>
       {/* Dropdown Menu */}
-      <MenuList className="bg-white shadow-md rounded-lg">
-        <MenuItem onClick={handleEditClick} className="bg-gradient-to-r from-transparent to-teal-900 mb-1 hover:bg-teal-200">
+      <MenuList className="bg-white shadow-md rounded-lg border border-teal-100">
+        <MenuItem onClick={handleEditClick} className="bg-gradient-to-r from-white mb-1 hover:bg-teal-200">
           Edit
         </MenuItem>
         {(latestOrder.status === "active" || latestOrder.status === "leave") && (
-          <MenuItem onClick={handleLeaveClick} className="bg-gradient-to-r from-transparent to-teal-900 mb-1 hover:bg-teal-200">
+          <MenuItem onClick={handleLeaveClick} className="bg-gradient-to-r from-white mb-1 hover:bg-teal-200">
             Leave
           </MenuItem>
         )}
         <MenuItem
           onClick={() => navigate(`/dashboard/userOrder/${user._id}`, {})}
-          className="bg-gradient-to-r from-transparent to-teal-900 mb-1 hover:bg-teal-200"
+          className="bg-gradient-to-r from-white mb-1 hover:bg-teal-200"
         >
           Orders
         </MenuItem>
         <MenuItem
          onClick={handleDelete}
-          className="bg-gradient-to-r from-transparent to-teal-900 hover:bg-teal-200"
+          className="bg-gradient-to-r from-white hover:bg-teal-200"
         >
           Delete
         </MenuItem>

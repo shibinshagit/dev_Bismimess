@@ -256,7 +256,7 @@ function OrdersList() {
       <Dialog
         open={showAddOrderModal}
         handler={() => setShowAddOrderModal(false)}
-        size="sm"
+        size="md"
         className="overflow-visible"
       >
         <DialogHeader className="sticky top-0 z-10 bg-white rounded-full">{isEditingOrder ? 'Edit Order' : 'Add New Order'}</DialogHeader>
@@ -267,7 +267,7 @@ function OrdersList() {
               Plan
             </Typography>
             <div className="flex flex-row items-center gap-2">
-              {['Breakfast', 'Lunch', 'Dinner'].map((meal, index) => {
+              {['B', 'L', 'D'].map((meal, index) => {
                 const value = meal.charAt(0).toUpperCase(); // 'B', 'L', 'D'
                 return (
                   <Checkbox
