@@ -9,9 +9,9 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { BaseUrl } from '../../constants/BaseUrl';
 import Swal from 'sweetalert2';
+import { Edit, Trash } from 'lucide-react';
 
 function OrdersList() {
-    console.log('jhdjhfj')
   const { userId } = useParams(); // Get userId from the route parameters
   const navigate = useNavigate();
 
@@ -111,13 +111,13 @@ function OrdersList() {
     }
   };
 
-  const handleOrderFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setOrderFormData((prevData) => ({
-      ...prevData,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
+  // const handleOrderFormChange = (e) => {
+  //   const { name, value, type, checked } = e.target;
+  //   setOrderFormData((prevData) => ({
+  //     ...prevData,
+  //     [name]: type === 'checkbox' ? checked : value,
+  //   }));
+  // };
 
   const handlePlanChange = (e) => {
     const { value, checked } = e.target;
@@ -151,38 +151,103 @@ function OrdersList() {
     }
   };
 
+
+
+  const handleOrderFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    // Special handling for start date to automatically set end date
+    if (name === 'startDate') {
+      const startDate = new Date(value);
+      const endDate = new Date(startDate);
+      
+      // Set to the next month and subtract one day
+      endDate.setMonth(startDate.getMonth() + 1);
+      endDate.setDate(endDate.getDate() - 1);
+      
+      // Format the end date to YYYY-MM-DD for input
+      const formattedEndDate = endDate.toISOString().split('T')[0];
+      
+      setOrderFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+        endDate: formattedEndDate
+      }));
+    } else {
+      setOrderFormData((prevData) => ({
+        ...prevData,
+        [name]: type === 'checkbox' ? checked : value,
+      }));
+    }
+  };
+  
+  // Calculate days between start and end dates
+  const calculateDaysBetween = () => {
+    if (orderFormData.startDate && orderFormData.endDate) {
+      const start = new Date(orderFormData.startDate);
+      const end = new Date(orderFormData.endDate);
+      const timeDiff = end.getTime() - start.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end dates
+      return daysDiff;
+    }
+    return 0;
+  };
+  
+
   return (
-    <div className="p-4">
-      <Typography variant="h4" className="mb-4">
-        {userName}'s Orders
+    <div className="p-4 mb-12">
+  <div className="flex justify-between items-center">
+  <Typography variant="h4" className="mb-4">
+        {userName}
       </Typography>
 
-      <Button color="green" onClick={handleAddOrderClick} className="mb-4">
+      <Button onClick={handleAddOrderClick} className="bg-gradient-to-r from-gray-700 to-teal-900 hover:bg-teal-900 mb-4">
         Add New Order
       </Button>
-
+  </div>
+{console.log('or',orders)}
       {orders.map((order) => (
         <Card
           key={order._id}
-          className={`mb-4 ${order._id === activeOrderId ? 'border-2 border-green-500' : ''}`}
-        >
+          className={`mb-4 ${order._id === activeOrderId ? 'border-2 border-teal-500' : ''}`}
+          style={
+            order._id === activeOrderId
+              ? {}
+              : {
+                backgroundImage:
+                  "repeating-linear-gradient(30deg, #6b7280 0, #6b7280 1px, transparent 1px, transparent 5px)",
+              }
+          }
+       >
           <CardBody>
-            <Typography variant="h6">Order ID: {order._id}</Typography>
+           <div className='flex justify-between items-center'>
+           <Typography variant="h6">Order ID: {order._id.slice(2,5)}</Typography>
+            <Typography variant="small" className='font-semibold bg-gradient-to-r  from-teal-900 to-gray-300 w-20 rounded h-6 capitalize text-white ' align="center" >{order.status}</Typography>
+           
+           </div>
             <Typography>Plan: {order.plan.join(', ')}</Typography>
             <Typography>
               Duration: {order.orderStart.split('T')[0]} to {order.orderEnd.split('T')[0]}
             </Typography>
-            <Typography>Status: {order.status}</Typography>
             <Typography>Payment Status: {order.paymentStatus}</Typography>
             {/* Add more fields as necessary */}
-            <div className="flex space-x-2 mt-4">
-              <Button color="blue" onClick={() => handleEditOrderClick(order)}>
-                Edit
-              </Button>
-              <Button color="red" onClick={() => handleDeleteOrder(order._id)}>
-                Delete
-              </Button>
-            </div>
+            {order._id === activeOrderId ? 
+            <div className="flex space-x-3 mt-4">
+            <Edit
+              name="Edit"
+              size={20}
+              className="text-blue-600 cursor-pointer"
+              onClick={() => handleEditOrderClick(order)}
+            />
+            <Trash
+              name="Delete"
+              size={20}
+              className="text-red-600 cursor-pointer"
+              onClick={() => handleDeleteOrder(order._id)}
+            />
+          </div>
+            :''}
+           
           </CardBody>
         </Card>
       ))}
@@ -194,14 +259,14 @@ function OrdersList() {
         size="sm"
         className="overflow-visible"
       >
-        <DialogHeader className="sticky top-0 z-10 bg-white">{isEditingOrder ? 'Edit Order' : 'Add New Order'}</DialogHeader>
-        <DialogBody className="overflow-y-auto max-h-[70vh]">
+        <DialogHeader className="sticky top-0 z-10 bg-white rounded-full">{isEditingOrder ? 'Edit Order' : 'Add New Order'}</DialogHeader>
+        <DialogBody style={{ overflowY: 'auto', maxHeight: '70vh', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {/* Order Form */}
           <div className="mb-4">
             <Typography variant="small" className="font-semibold mb-2">
               Plan
             </Typography>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
               {['Breakfast', 'Lunch', 'Dinner'].map((meal, index) => {
                 const value = meal.charAt(0).toUpperCase(); // 'B', 'L', 'D'
                 return (
@@ -215,30 +280,34 @@ function OrdersList() {
                   />
                 );
               })}
+               <div className="w-auto h-6 px-4 py-0 text-center text-teal-900 ml-auto mb-1">
+    Days: {calculateDaysBetween()}
+  </div>
             </div>
           </div>
 
-          <div className="mb-4">
-            <Input
-              type="date"
-              name="startDate"
-              label="Start Date"
-              value={orderFormData.startDate}
-              onChange={handleOrderFormChange}
-              required
-            />
-          </div>
+          <div className="mb-4 flex justify-between items-center">
+  <Input
+    type="date"
+    name="startDate"
+    label="Start Date"
+    value={orderFormData.startDate}
+    onChange={handleOrderFormChange}
+    required
+  />
+ 
+</div>
 
-          <div className="mb-4">
-            <Input
-              type="date"
-              name="endDate"
-              label="End Date"
-              value={orderFormData.endDate}
-              onChange={handleOrderFormChange}
-              required
-            />
-          </div>
+<div className="mb-4">
+  <Input
+    type="date"
+    name="endDate"
+    label="End Date"
+    value={orderFormData.endDate}
+    onChange={handleOrderFormChange}
+    required
+  />
+</div>
 
           <div className="mb-4">
             <Select

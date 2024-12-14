@@ -524,7 +524,7 @@ const { searchTerm, showConnections } = controller;
                 <React.Fragment key={groupIndex}>
                   {/* Group Name Row */}
                   <tr>
-                    <td colSpan="7" className="bg-black text-white  font-semibold py-2 px-3">
+                    <td colSpan="7" className="bg-gradient-to-r  from-teal-900  to-transparent text-gray-300   font-semibold px-3">
                       {groupData.groupName}
                     </td>
                   </tr>

@@ -159,7 +159,7 @@ export function Configurator() {
     <aside
       className={`fixed top-0 right-0 z-50 h-screen w-full bg-white dark:bg-gray-800 px-2 py-6 shadow-lg transition-transform duration-300 ${
         openConfigurator ? "translate-x-0" : "translate-x-full"
-      }`}
+      } lg:px-28`}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-2 mb-6">
@@ -248,7 +248,7 @@ export function Configurator() {
               </ListItem>
               <button
   onClick={openAddNoteModal}
-  className="bg-gradient-to-r from-teal-500 to-teal-800 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm"
+  className="bg-gradient-to-r from-teal-500 to-teal-800 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm lg:w-56"
 >
   Add Notification +
 </button>
@@ -327,14 +327,14 @@ export function Configurator() {
               <Button
                 variant={sidenavType === "transparent" ? "gradient" : "outlined"}
                 onClick={handleAttendanceLive}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center lg:w-56"
               >
                 Live Attendance
               </Button>
               <Button
                 variant={sidenavType === "white" ? "gradient" : "outlined"}
                 onClick={handleAttendance}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center lg:w-56"
               >
                 Mark Attendance
               </Button>
@@ -359,14 +359,14 @@ export function Configurator() {
                   setSidenavType(dispatcher, "transparent");
                   setOpenConfigurator(dispatcher, false); // Close configurator
                 }}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center lg:w-56"
               >
                 Add Delivery
               </Button>
               <Button
                 variant={sidenavType === "white" ? "gradient" : "outlined"}
                 onClick={handleDelivery}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center lg:w-56"
               >
                 Manage Delivery
               </Button>
@@ -381,7 +381,7 @@ export function Configurator() {
             variant="gradient"
             color="red"
             fullWidth
-            className="flex items-center justify-center gap-2 mb-20"
+            className="flex items-center justify-center gap-2 mb-20 lg:w-64"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

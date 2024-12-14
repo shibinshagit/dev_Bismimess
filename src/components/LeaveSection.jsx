@@ -11,7 +11,7 @@ import {
   DialogFooter,
   Checkbox,
 } from "@material-tailwind/react";
-import { DeleteIcon, EditIcon } from 'lucide-react';
+import {  EditIcon, Trash } from 'lucide-react';
 
 const LeaveSection = ({
   leaves,
@@ -81,51 +81,10 @@ const LeaveSection = ({
 
   return (
     <div className="mt-4">
-      {/* List of Leaves */}
-      <Typography variant="h6" color="blue-gray" className="mb-2">
-        All Leaves
-      </Typography>
-      {leaves.length === 0 ? (
-        <Typography>No leave entries found.</Typography>
-      ) : (
-        <List>
-          {leaves.map((leave) => (
-            <ListItem key={leave._id} className="mb-3">
-              <div>
-                <Typography>
-                  {`Start: ${formatDate(leave.start)}, End: ${formatDate(
-                    leave.end
-                  )}, Meals: ${leave.meals?.join(', ')}`}
-                </Typography>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  color="light-blue"
-                  variant="text"
-                  onClick={() => openEditModal(leave)}
-                  className="p-2 rounded-full"
-                >
-                  <EditIcon className="w-5 h-5 text-light-blue-500" />
-                </Button>
-                <Button
-                  color="red-500"
-                  variant="text"
-                  onClick={() => handleDeleteLeave(leave._id)}
-                  className="p-2 rounded-full"
-                >
-                  <DeleteIcon className="w-5 h-5 text-red-500" />
-                </Button>
-              </div>
-            </ListItem>
-          ))}
-        </List>
-      )}
 
         {/* Add Leave Section */}
-        <Typography variant="h6" color="blue-gray" className="mt-4 mb-2">
-        Add Leave
-      </Typography>
-      <div className="mb-4">
+    
+        <div className="my-4">
         <Input
           type="date"
           name="leaveStart"
@@ -135,6 +94,7 @@ const LeaveSection = ({
           required
         />
       </div>
+      
       <div className="mb-4">
         <Input
           type="date"
@@ -146,28 +106,76 @@ const LeaveSection = ({
         />
       </div>
       <div className="mb-4">
-        <Typography variant="small" className="font-semibold mb-2">
-          Select Meals for Leave
-        </Typography>
-        <div className="flex flex-col gap-2">
-          {console.log('planss',plan)}
-          {plan.map((mealCode) => {
-            const mealLabel = mealCode === 'B' ? 'Breakfast' : mealCode === 'L' ? 'Lunch' : 'Dinner';
-            return (
-              <Checkbox
-                key={mealCode}
-                name="meals"
-                label={mealLabel}
-                checked={leaveFormData.meals.includes(mealCode)}
-                onChange={(e) => handleLeaveMealsChange(mealCode, e.target.checked)}
-              />
-            );
-          })}
-        </div>
+      
+      <div className="flex flex-row items-center gap-2">
+  {console.log('planss', plan)}
+  {plan.map((mealCode) => {
+    const mealLabel = mealCode === 'B' ? 'B' : mealCode === 'L' ? 'L' : 'D';
+    return (
+      <Checkbox
+        key={mealCode}
+        name="meals"
+        label={mealLabel}
+        checked={leaveFormData.meals.includes(mealCode)}
+        onChange={(e) => handleLeaveMealsChange(mealCode, e.target.checked)}
+      />
+    );
+  })}  
+  <Button 
+    color="teal" 
+    className="w-auto h-6 px-4 py-0 text-center ml-auto" 
+    onClick={() => handleLeaveSubmit(leaveFormData)}
+  >
+    Save
+  </Button>
+</div>
+
       </div>
-      <Button color="blue" onClick={() => handleLeaveSubmit(leaveFormData)}>
-        Submit Leave
-      </Button>
+  
+
+
+      {/* List of Leaves */}
+      <Typography variant="h6" color="blue-gray" className="mb-2">
+        Leaves
+      </Typography>
+      {leaves.length === 0 ? (
+        <Typography>No leaves</Typography>
+      ) : (
+        <List>
+          {leaves.map((leave) => (
+           <ListItem
+  key={leave._id}
+  className="flex justify-between items-center p-4 mb-3 rounded-lg shadow-md bg-gradient-to-r from-teal-900 to-teal-200 hover:shadow-lg transition-shadow"
+>
+  <div className="text-white">
+    <Typography className="text-sm font-medium">
+      {`Start: ${formatDate(leave.start)} - End: ${formatDate(leave.end)}`}
+    </Typography>
+    <Typography className="text-xs text-gray-400">
+      {`Meals: ${leave.meals?.join(', ')}`}
+    </Typography>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <button
+      onClick={() => openEditModal(leave)}
+      className="p-2 rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
+      aria-label="Edit"
+    >
+      <EditIcon className="w-5 h-5" />
+    </button>
+    <button
+      onClick={() => handleDeleteLeave(leave._id)}
+      className="p-2 rounded-full text-red-500 hover:bg-red-100 transition-colors"
+      aria-label="Delete"
+    >
+      <Trash className="w-5 h-5" />
+    </button>
+  </div>
+</ListItem>
+          ))}
+        </List>
+      )}
 
       {/* Edit Leave Modal */}
       <Dialog open={editModalOpen} handler={closeEditModal} size="sm">

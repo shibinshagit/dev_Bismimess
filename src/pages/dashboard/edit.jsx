@@ -7,7 +7,7 @@ import { PlusIcon } from 'lucide-react';
 import { 
   Card, CardHeader, CardBody, Typography, Input, Button, Checkbox, 
   List, ListItem, Dialog, DialogHeader, DialogBody, DialogFooter, 
-  Option, Select ,Switch,
+  Option, Select ,Switch, Menu, MenuHandler, MenuList, MenuItem, IconButton,
   Avatar
 } from "@material-tailwind/react";
 import { fetchCustomers } from '@/redux/reducers/authSlice';
@@ -373,6 +373,7 @@ const handleGroupOnPoints = (point) => {
 
   // Edit button click
   const handleEditClick = () => {
+    setShowLeaveSection(false);
     setIsEditing(true);
   };
 
@@ -628,10 +629,9 @@ const handleGroupOnPoints = (point) => {
   const filteredLeaves = (latestOrder.leave || []).filter(leave => new Date(leave.end) <= new Date());
 
   return (
-    <div className="flex justify-center my-12">
-      <Card className="w-full max-w-lg">
-        <CardHeader >
-        </CardHeader>
+    <div className="flex justify-center mb-12">
+      <Card className="w-full">
+      
    {/* Add New Point Modal */}
    <AddNewPointModal
           open={openPointModal}
@@ -648,8 +648,86 @@ const handleGroupOnPoints = (point) => {
         />
 
         <form onSubmit={handleSubmit}>
-          <CardBody className="p-6">
-            {console.log(existingImages)}
+          <CardBody className="">
+
+
+
+
+
+          
+              {isEditing ? (
+                <>
+                 <div className="flex justify-end items-center mb-4">
+                <Button
+                  color="orange"
+                  variant="text"
+                  className="flex items-center gap-2"
+                  onClick={() => setOpenPointModal(true)}
+                >
+                  <PlusIcon className="w-5 h-5" /> New Point
+                </Button>
+              </div>
+                </>
+              ) : (
+                <>
+                 <div className="items-center mb-4">
+                   <Menu>
+      {/* Hamburger Icon */}
+      <div className="flex justify-between items-center">
+        
+      <Typography variant="small" className='font-semibold bg-gradient-to-r  from-gray-200 to-teal-900 w-20 rounded h-6 capitalize text-white ' align="center" >{latestOrder?.status}</Typography>
+      <MenuHandler>
+        <IconButton className="bg-teal-900 hover:bg-gray-900">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3.75 7.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"
+            />
+          </svg>
+        </IconButton>
+      </MenuHandler>
+      </div>
+      {/* Dropdown Menu */}
+      <MenuList className="bg-white shadow-md rounded-lg">
+        <MenuItem onClick={handleEditClick} className="bg-gradient-to-r from-transparent to-teal-900 mb-1 hover:bg-teal-200">
+          Edit
+        </MenuItem>
+        {(latestOrder.status === "active" || latestOrder.status === "leave") && (
+          <MenuItem onClick={handleLeaveClick} className="bg-gradient-to-r from-transparent to-teal-900 mb-1 hover:bg-teal-200">
+            Leave
+          </MenuItem>
+        )}
+        <MenuItem
+          onClick={() => navigate(`/dashboard/userOrder/${user._id}`, {})}
+          className="bg-gradient-to-r from-transparent to-teal-900 mb-1 hover:bg-teal-200"
+        >
+          Orders
+        </MenuItem>
+        <MenuItem
+         onClick={handleDelete}
+          className="bg-gradient-to-r from-transparent to-teal-900 hover:bg-teal-200"
+        >
+          Delete
+        </MenuItem>
+      </MenuList>
+    </Menu></div>
+                </>
+              )}
+           
+
+
+
+
+
+          
 {/* Existing Images */}
 {existingImages.length > 0 && (
   <div className="mb-4">
@@ -667,7 +745,7 @@ const handleGroupOnPoints = (point) => {
           {isEditing && (
             <button
               type="button"
-              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+              className="absolute top-0 right-0 text-white rounded-full p-1"
               onClick={() => handleRemoveExistingImage(src)}
             >
               &times;
@@ -678,6 +756,153 @@ const handleGroupOnPoints = (point) => {
     </div>
   </div>
 )}
+
+
+{!showLeaveSection && (
+  <>
+    {/* Profile Picture */}
+    <div className="mb-4 flex items-center justify-center">
+      <div
+        style={{
+          width: "50px",
+          height: "50px",
+          borderRadius: "50%",
+          backgroundColor: "#000",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "#fff",
+          fontSize: "18px",
+          fontWeight: "bold",
+          marginRight: "10px",
+        }}
+      >
+        {formData.name
+          ? formData.name
+              .split(" ")
+              .map((part) => part[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()
+          : "NN"}
+      </div>
+  
+    </div>
+
+    {/* Name Input */}
+    <div className="mb-4">
+      <Input
+        type="text"
+        name="name"
+        label="Name"
+        // variant="standard"
+        value={formData.name}
+        onChange={handleChange}
+        required={isEditing ? true : undefined}
+        disabled={!isEditing}
+      />
+    </div>
+
+    {/* Phone Number Input */}
+    <div className="mb-4">
+      <Input
+        type="number"
+        name="phone"
+        label="Phone Number"
+        value={formData.phone}
+        pattern="\d{10}"
+        maxLength="10"
+        onChange={handleChange}
+        required={isEditing ? true : undefined}
+        disabled={!isEditing}
+      />
+    </div>
+
+    {/* Point Input with Suggestions */}
+    <div className="mb-4 relative">
+      <Input
+        type="text"
+        name="point"
+        label="Point"
+        value={pointInputValue}
+        onChange={handleChange}
+        required={isEditing ? true : undefined}
+        disabled={!isEditing}
+      />
+      {showSuggestions && isEditing && (
+        <ul className="absolute bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto z-10">
+          {filteredPoints.map((pt) => (
+            <li
+              key={pt._id}
+              className="p-2 cursor-pointer hover:bg-gray-200"
+              onClick={() => handleSuggestionClick(pt)}
+            >
+              {pt.place} ({pt.mode})
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </>
+)}
+
+         
+            
+
+
+
+{/* Image Upload */}
+{isEditing && (
+             <div className="mb-4">
+           
+           <Input
+  type="file"
+  label={existingImages.length > 0 ? 'Add More Images' : 'Upload Images (Maximum 3)'}
+  name="images"
+  multiple
+  accept="image/*"
+  onChange={handleImageChange}
+  disabled={!isEditing}
+  className="
+    file:border-none
+    file:bg-gray-200 
+    file:text-gray-700 
+    file:rounded-md 
+    file:focus:outline-none 
+    text-gray-800 
+    border border-gray-300 
+    rounded-md 
+    p-2 
+    w-full 
+    disabled:cursor-not-allowed 
+    disabled:bg-gray-100 
+    disabled:border-gray-300
+  "
+/>
+
+
+           
+             {/* Image Previews */}
+             <div className="flex mt-2 space-x-2">
+               {imagePreviews.map((src, index) => (
+                 <div key={index} className="relative">
+                   <img
+                     src={src}
+                     alt={`New Image Preview ${index + 1}`}
+                     className="w-24 h-24 object-cover rounded"
+                   />
+                   <button
+                     type="button"
+                     className="absolute top-0 right-0 text-white rounded-full p-1"
+                     onClick={() => handleRemoveNewImage(index)}
+                   >
+                     &times;
+                   </button>
+                 </div>
+               ))}
+             </div>
+           </div>
+            )}
 
 
 
@@ -701,79 +926,6 @@ const handleGroupOnPoints = (point) => {
     </Select>
   </div>
 )}
-
-
-            {/* Name Input */}
-            <div className="mb-4">
-              <Input
-                type="text"
-                name="name"
-                label="Name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                disabled={!isEditing}
-              />
-            </div>
-
-            {/* Phone Number Input */}
-            <div className="mb-4">
-              <Input
-                type="number"
-                name="phone"
-                label="Phone Number"
-                value={formData.phone}
-                pattern="\d{10}"
-                maxLength="10"
-                onChange={handleChange}
-                required
-                disabled={!isEditing}
-              />
-            </div>
-
-            {/* Point Input with Suggestions */}
-            <div className="mb-4 relative">
-              <Input
-                type="text"
-                name="point"
-                label="Point"
-                value={pointInputValue}
-                onChange={handleChange}
-                required
-                disabled={!isEditing}
-              />
-              {showSuggestions && isEditing && (
-                <ul className="absolute bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto z-10">
-                  {filteredPoints.map((pt) => (
-                    <li
-                      key={pt._id}
-                      className="p-2 cursor-pointer hover:bg-gray-200"
-                      onClick={() => handleSuggestionClick(pt)}
-                    >
-                      {pt.place} ({pt.mode})
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-
-            
-
-            {/* New Point Button */}
-            {isEditing && (
-              <div className="flex justify-between items-center mb-4">
-                <Button
-                  color="orange"
-                  variant="text"
-                  className="flex items-center gap-2"
-                  onClick={() => setOpenPointModal(true)}
-                >
-                  <PlusIcon className="w-5 h-5" /> New Point
-                </Button>
-              </div>
-            )}
-
 
 {/* Group Selection (Conditional) */}
 {userType === 'group' && isEditing && (
@@ -823,179 +975,23 @@ const handleGroupOnPoints = (point) => {
   </div>
 )}
 
-
-
+            
 
 
             
-{/* Image Upload */}
-<div className="mb-4">
-  <Typography variant="small" className="font-semibold mb-2">
-    {existingImages.length > 0 ? 'Add More Images' : 'Upload Images (Maximum 3)'}
-  </Typography>
-  <Input
-    type="file"
-    name="images"
-    multiple
-    accept="image/*"
-    onChange={handleImageChange}
-    disabled={!isEditing}
-  />
-  {/* Image Previews */}
-  <div className="flex mt-2 space-x-2">
-    {imagePreviews.map((src, index) => (
-      <div key={index} className="relative">
-        <img
-          src={src}
-          alt={`New Image Preview ${index + 1}`}
-          className="w-24 h-24 object-cover rounded"
-        />
-        <button
-          type="button"
-          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-          onClick={() => handleRemoveNewImage(index)}
-        >
-          &times;
-        </button>
-      </div>
-    ))}
-  </div>
-</div>
 
-            <div className="mb-4">
-              {isEditing ? (
-                <Select
-                  name="paymentStatus"
-                  label="Payment Status"
-                  value={formData.paymentStatus}
-                  onChange={(value) =>
-                    setFormData({ ...formData, paymentStatus: value })
-                  }
-                  required
-                  disabled={!isEditing}
-                >
-                  <Option value="success">Success</Option>
-                  <Option value="failed">Failed</Option>
-                  <Option value="pending">Pending</Option>
-                </Select>
-              ) : (
-                <Typography variant="small" className="font-semibold mb-2">
-                  Payment Status: {formData.paymentStatus}
-                </Typography>
-              )}
-            </div>
+          
 
-               {/* Plan Checkboxes */}
-               <PlanCheckboxes
-                  plan={formData.plan}
-                  handlePlanChange={handlePlanChange}
-                  isEditing={isEditing}
-                />
 
-                {/* Start Date Input */}
-                <div className="mb-4">
-                  <Input
-                    type="date"
-                    name="startDate"
-                    label="Start Date"
-                    value={formData.startDate}
-                    min={twentyDaysAgoISO}
-                    onChange={handleChange}
-                    required
-                    disabled={!isEditing}
-                  />
-                </div>
 
-                {/* End Date Input */}
-                <div className="mb-4">
-                  <Input
-                    type="date"
-                    name="endDate"
-                    label="End Date"
-                    value={formData.endDate}
-                    readOnly
-                    required
-                    disabled
-                  />
-                </div>
 
-            {/* Veg Toggle */}
-            <div className="flex items-center mb-4">
-                  <Typography variant="small" className="mr-2">
-                    Veg
-                  </Typography>
-                  <Switch
-                    checked={formData.isVeg}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        isVeg: e.target.checked,
-                      })
-                    }
-                    disabled={!isEditing}
-                  />
-                </div>
-
-            {/* Conditionally render payment-related fields */}
-            {formData.paymentStatus !== 'pending' && (
-              <>
-                 {/* Amount Input */}
-                 <div className="mb-4">
-                  <Input
-                    type="number"
-                    name="amount"
-                    label="Amount"
-                    value={formData.amount}
-                    onChange={handleChange}
-                    required
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                {/* Payment Method Select */}
-                <div className="mb-4">
-                  <Select
-                    name="paymentMethod"
-                    label="Payment Method"
-                    value={formData.paymentMethod}
-                    onChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        paymentMethod: value,
-                        paymentId: "", // Reset paymentId when paymentMethod changes
-                      })
-                    }
-                    required
-                    disabled={!isEditing}
-                  >
-                    <Option value="Cash">Cash</Option>
-                    <Option value="Bank">Bank</Option>
-                    <Option value="Online">Online</Option>
-                  </Select>
-                </div>
-
-                {/* Payment ID Input */}
-                <div className="mb-4">
-                  <Input
-                    type="text"
-                    name="paymentId"
-                    label="Payment ID"
-                    value={formData.paymentId}
-                    onChange={handleChange}
-                    required={formData.paymentMethod !== "Cash"}
-                    disabled={formData.paymentMethod === "Cash" || !isEditing}
-                  />
-                </div>
-              </>
-            )}
+       
 
           {/* Action Buttons */}
           <div className="flex justify-between">
               {isEditing ? (
                 <>
-                  <Button type="button" color="red" className="mr-2" onClick={handleDelete}>
-                    Delete
-                  </Button>
+                  
                   <Button type="submit" color="green">
                     Save
                   </Button>
@@ -1006,18 +1002,7 @@ const handleGroupOnPoints = (point) => {
                 </>
               ) : (
                 <>
-                  <Button onClick={handleEditClick}>Edit</Button>
-                  {console.log('latest',latestOrder._id)}
-                  {(latestOrder.status === 'active' || latestOrder.status === 'leave') && (
-                    <Button onClick={handleLeaveClick}>Leave</Button>
-                  )}
-                  {/* Add the "Show Orders" button */}
-                  <Button
-                    onClick={() => navigate(`/dashboard/userOrder/${user._id}`,{})}
-                    color="blue"
-                  >
-                    Show Orders
-                  </Button>
+                
                 </>
               )}
             </div>
