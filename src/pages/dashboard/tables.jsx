@@ -16,7 +16,7 @@ import {
 import { Dialog, DialogHeader, DialogBody, DialogFooter, Input, Button } from '@material-tailwind/react';
 import axios from 'axios'; // Import axios for making API calls
 import * as XLSX from 'xlsx';
-import { Download, PlusCircleIcon } from 'lucide-react';
+import { Download, EllipsisVertical, PlusCircleIcon } from 'lucide-react';
 import { BaseUrl } from '@/constants/BaseUrl';
 import UserAvatar from '../../../public/img/user.jpg';
 
@@ -83,6 +83,22 @@ const { searchTerm, showConnections } = controller;
   const [bill, setBill] = useState(0);
 
   // const [showConnections, setShowConnections] = useState(true);
+
+  // screen size detect --------------------------------
+  const [md, setMd] = useState(false); 
+
+  useEffect(() => {
+    const handleResize = () => {
+      setMd(window.innerWidth >= 768); // Adjust breakpoint as needed
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleInvoiceDialog = (user) => {
     const totalLeaveDays = user.latestOrder?.leave.reduce((acc, leave) => {
@@ -247,14 +263,27 @@ const { searchTerm, showConnections } = controller;
     setFilter(selectedFilter);
   };
 
-  const filteredUsers = users
-    .filter((user) => {
-      if (filter === 'All') {
-        return true;
-      } else {
-        return user.latestOrder && user.latestOrder.status.toLowerCase() === filter.toLowerCase();
-      }
-    })
+  const filteredUsers = users.filter((user) => {
+    if (filter === 'All') {
+      return true; 
+    } else if (filter === 'BL') {
+      return user.latestOrder && 
+       user.latestOrder.plan.includes('B') && 
+       user.latestOrder.plan.includes('L');
+    }
+    else if (filter === 'B') {
+      return user.latestOrder && user.latestOrder.plan.includes('B'); 
+    }
+    else if (filter === 'L') {
+      return user.latestOrder && user.latestOrder.plan.includes('L'); 
+    }
+    else if (filter === 'D') {
+      return user.latestOrder && user.latestOrder.plan.includes('D'); 
+    }
+     else {
+      return user.latestOrder && user.latestOrder.status.toLowerCase() === filter.toLowerCase();
+    }
+  })
     .filter(
       (user) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.phone.includes(searchTerm)
@@ -316,6 +345,7 @@ const { searchTerm, showConnections } = controller;
       <tr
       key={user._id}
       className={`even:bg-blue-gray-50/50`}
+      onClick={() => handleUpdate(user)}
       style={
         isBilled
           ? {
@@ -326,6 +356,7 @@ const { searchTerm, showConnections } = controller;
     >
         <td className={className}>
           <div className="flex items-center gap-4">
+            
             <Avatar
               src={UserAvatar}
               alt={user.name}
@@ -335,16 +366,30 @@ const { searchTerm, showConnections } = controller;
             />
 
             <div>
+              
               <Typography variant="small" color="blue-gray" className="font-semibold">
                 {user.name}
               </Typography>
+              <Typography className="text-xs font-semibold text-blue-gray-600 flex gap-1">
+            {user.latestOrder?.plan?.length ? (
+              user.latestOrder.plan.map((item, index) => (
+                <div key={index} className="">
+                  {item}
+                </div>
+              ))
+            ) : (
+              <div>---</div>
+            )}
+          </Typography>
               <Typography className="text-xs font-normal text-blue-gray-500">
                 {user.phone}
               </Typography>
+              
             </div>
           </div>
         </td>
-        <td className={className}>
+        <td 
+    className={`hidden md:block ${className}`} >
           <div className="flex items-center gap-4">
             <div>
               <Typography variant="small" color="blue-gray" className="font-semibold">
@@ -389,7 +434,7 @@ const { searchTerm, showConnections } = controller;
             className="py-0.5 px-2 text-[11px] font-medium w-fit"
           />
         </td>
-        <td className={className}>
+        <td  className={`hidden md:block ${className}`}>
           <Typography className="text-xs font-semibold text-blue-gray-600 flex gap-1">
             {user.latestOrder?.plan?.length ? (
               user.latestOrder.plan.map((item, index) => (
@@ -402,12 +447,15 @@ const { searchTerm, showConnections } = controller;
             )}
           </Typography>
         </td>
-        <td className={className}>
+        <td className={`
+                  ${ md ? className : 'hidden'} 
+                `} >
+   
           <Typography className="text-xs font-semibold text-blue-gray-600">
             {formattedDate}
           </Typography>
         </td>
-        <td className={className}>
+        {/* <td className={className}>
           <Typography
             as="a"
             className="text-xs font-semibold text-blue-gray-600"
@@ -415,9 +463,9 @@ const { searchTerm, showConnections } = controller;
           >
             Edit
           </Typography>
-        </td>
+        </td> */}
           {/* Add a new column or modify an existing one to show billed status */}
-      <td className={className}>
+      <td  className={`hidden md:block ${className}`}>
         {isBilled ? (
           <Chip
             variant="gradient"
@@ -434,7 +482,9 @@ const { searchTerm, showConnections } = controller;
           />
         )}
       </td>
-      <td className={className} style={{ borderLeft: '2px solid black' }}>
+      <td className={`
+                  ${ md ? className : 'hidden'} 
+                `} >
           {new Date(orderEnd).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000 && (
             <button
               className="text-xs font-semibold text-blue-600"
@@ -448,9 +498,9 @@ const { searchTerm, showConnections } = controller;
     );
   };
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
+  // if (loading) {
+  //   return <p>Loading...</p>;
+  // }
 
   if (error) {
     return <p>{error}</p>;
@@ -458,22 +508,9 @@ const { searchTerm, showConnections } = controller;
 
   return (
     <div className="flex flex-col gap-1">
-      {/* Toggle Switch */}
-      {/* <div className="flex justify-between items-center ">
- 
-      <Typography></Typography>
-         
-        <div className="flex items-center p-4 ">
-          <Typography className='mr-4'>Connections</Typography>
-        <Switch
-            checked={showConnections}
-            onChange={(e) => setShowConnections(e.target.checked)}
-          /> 
-        </div>
-      </div> */}
-
-      <CardBody className="overflow-x-scroll px-0 pt-0 pb-20">
-        <table className="w-full min-w-[640px] table-auto">
+     
+      <CardBody className=" px-0 pt-0 pb-20">
+        <table className="w-full min-w-[200px] table-auto">
           <thead>
             <tr>
               {[
@@ -481,33 +518,51 @@ const { searchTerm, showConnections } = controller;
                 'Location',
                 <Menu key="menu">
                   <MenuHandler>
-                    <span>Status</span>
+                   {md ?  <span>Status</span> : <span>...</span>}
                   </MenuHandler>
                   <MenuList>
-                    <MenuItem onClick={() => handleFilterChange('All')}>All</MenuItem>
-                    <MenuItem onClick={() => handleFilterChange('Active')}>Active</MenuItem>
-                    <MenuItem onClick={() => handleFilterChange('Leave')}>Leave</MenuItem>
-                    <MenuItem onClick={() => handleFilterChange('Expired')}>Expired</MenuItem>
-                    <MenuItem onClick={() => handleFilterChange('Soon')}>Soon</MenuItem>
-                  </MenuList>
+  <MenuItem onClick={() => handleFilterChange('All')}>All</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Active')}>Active</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Leave')}>Leave</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Expired')}>Expired</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Soon')}>Soon</MenuItem>
+
+  {!md && ( 
+    <> 
+      <MenuItem onClick={() => handleFilterChange('BL')}>BL</MenuItem>
+      <MenuItem onClick={() => handleFilterChange('B')}>B</MenuItem>
+      <MenuItem onClick={() => handleFilterChange('L')}>L</MenuItem>
+      <MenuItem onClick={() => handleFilterChange('D')}>D</MenuItem>
+      <MenuItem onClick={() => printData(filteredUsers)}>Download({filteredUsers.length})</MenuItem> 
+    </>
+  )}
+</MenuList>
                 </Menu>,
-                'Plan',
+           'Plan',
                 'Expires',
-                'Edit',
+                // 'Edit',
                 'Billed',
                 <Typography
-                  as="a"
-                  className="text-xs font-semibold text-red-600 flex"
-                  onClick={() => printData(filteredUsers)}
-                >
-                  <Download />
-                  {filteredUsers.length}
-                </Typography>,
+                as="a"
+                className="hidden md:flex md:text-xs md:font-semibold md:text-red-600" 
+                onClick={() => printData(filteredUsers)}
+              >
+                <Download />
+                {filteredUsers.length}
+              </Typography>
               ].map((el, index) => (
-                <th
-                  key={index}
-                  className="border-b border-blue-gray-50 py-3 px-5 text-left"
-                >
+                <th 
+                key={index}
+                className={`
+                  ${ md ? '' : 'hidden'} 
+                  ${(el === 'Location' || el === 'Billed' || el === 'Expires') ? 'md:' : ''} 
+                  border-b 
+                  border-blue-gray-50 
+                  py-3 
+                  px-5 
+                  text-left
+                `} >
+                  
                   <Typography
                     variant="small"
                     className="text-[11px] font-bold uppercase text-blue-gray-400"
@@ -516,6 +571,40 @@ const { searchTerm, showConnections } = controller;
                   </Typography>
                 </th>
               ))}
+            </tr>
+            <tr   className={`
+                  ${ !md ? '' : 'hidden'} 
+                 
+                  border-b 
+                  border-blue-gray-50 
+                  py-3 
+                  px-5 
+                  text-left
+                `} >
+            
+ <Menu key="menu">
+                  <MenuHandler>
+                   {md ?  <span>Status</span> : <EllipsisVertical/>}
+                  </MenuHandler>
+                  
+                  <MenuList>
+  <MenuItem onClick={() => handleFilterChange('All')}>All</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Active')}>Active</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Leave')}>Leave</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Expired')}>Expired</MenuItem>
+  <MenuItem onClick={() => handleFilterChange('Soon')}>Soon</MenuItem>
+
+  {!md && ( 
+    <> 
+      <MenuItem onClick={() => handleFilterChange('BL')}>BL</MenuItem>
+      <MenuItem onClick={() => handleFilterChange('B')}>B</MenuItem>
+      <MenuItem onClick={() => handleFilterChange('L')}>L</MenuItem>
+      <MenuItem onClick={() => handleFilterChange('D')}>D</MenuItem>
+      <MenuItem onClick={() => printData(filteredUsers)}>Download({filteredUsers.length})</MenuItem> 
+    </>
+  )}
+</MenuList>
+                </Menu>
             </tr>
           </thead>
           <tbody>

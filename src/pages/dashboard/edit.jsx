@@ -727,36 +727,6 @@ const handleGroupOnPoints = (point) => {
 
 
 
-          
-{/* Existing Images */}
-{existingImages.length > 0 && (
-  <div className="mb-4">
-    <Typography variant="small" className="font-semibold mb-2">
-      Existing Images
-    </Typography>
-    <div className="flex mt-2 space-x-2">
-      {existingImages.map((src, index) => (
-        <div key={index} className="relative">
-          <img
-            src={src}
-            alt={`Existing Image ${index + 1}`}
-            className="w-24 h-24 object-cover rounded"
-          />
-          {isEditing && (
-            <button
-              type="button"
-              className="absolute top-0 right-0 text-white rounded-full p-1"
-              onClick={() => handleRemoveExistingImage(src)}
-            >
-              &times;
-            </button>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
 
 {!showLeaveSection && (
   <>
@@ -788,6 +758,40 @@ const handleGroupOnPoints = (point) => {
       </div>
   
     </div>
+
+
+
+          
+{/* Existing Images */}
+{existingImages.length > 0 && (
+  <div className="mb-4 flex justify-center">
+
+    <div className="flex mt-2 space-x-2">
+  
+      {existingImages.map((src, index) => (
+        <div key={index} className="relative">
+          <img
+            src={src}
+            alt={`Existing Image ${index + 1}`}
+            className="w-24 h-24 object-cover rounded"
+          />
+          {isEditing && (
+            <button
+              type="button"
+              className="absolute top-0 right-0 text-white rounded-full p-1"
+              onClick={() => handleRemoveExistingImage(src)}
+            >
+              &times;
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+
+
 
     {/* Name Input */}
     <div className="mb-4">

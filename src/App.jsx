@@ -14,8 +14,8 @@ function App() {
       <Route path="/" element={<SignIn />}/>
       <Route path="/dashboard/*" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/auth/*" element={<Auth />} />
-      <Route path="/attendance/*" element={<Attendance />} />
-      <Route path="/delivery/*" element={<Delivery />} />
+      {/* <Route path="/attendance/*" element={<Attendance />} />
+      <Route path="/delivery/*" element={<Delivery />} /> */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Provider>
