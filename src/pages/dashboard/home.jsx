@@ -1,3 +1,5 @@
+// src/pages/Home.jsx
+
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -9,9 +11,9 @@ import {
   StatisticsChart,
 } from "@/widgets/charts";
 import {
-  fetchStatistics,
+  fetchStatistics, // Update this if necessary
 } from "@/data";
-import { CheckCircleIcon, ClockIcon, UserGroupIcon, CurrencyDollarIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon, ClockIcon, UserGroupIcon, CurrencyDollarIcon,  } from "@heroicons/react/24/solid";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCustomers } from "@/redux/reducers/authSlice";
 import { useNavigate } from "react-router-dom";
@@ -19,10 +21,13 @@ import { useMaterialTailwindController } from "@/context";
 import { BaseUrl } from "@/constants/BaseUrl";
 import axios from "axios";
 
+
+
 import { Card, CardHeader, CardBody } from "@material-tailwind/react";
-import { XCircleIcon } from "@heroicons/react/24/solid";
+import {  XCircleIcon } from "@heroicons/react/24/solid";
 import { StatisticsCard } from "@/widgets/cards";
 import { LeafIcon } from "lucide-react";
+
 
 const PointStatisticsCard  = ({ point }) => {
   const navigate = useNavigate();
@@ -57,7 +62,7 @@ const PointStatisticsCard  = ({ point }) => {
     >
       <header className="flex justify-between items-center mb-2">
         <Typography variant="h6" className="text-gray-800 font-bold">
-          {place} ({mode === "cluster" ? "C" : "S"}-{totalCustomers}) 
+          {place} ({mode === "cluster" ? "C" : "S"})
         </Typography>
         {todaysLeave > 0 ? (
           <XCircleIcon className="w-4 h-4 text-red-500" />
@@ -67,8 +72,8 @@ const PointStatisticsCard  = ({ point }) => {
       </header>
       <section className="space-y-2">
         <div className="text-sm text-gray-700">
-          <span className="font-semibold">Today:</span> 
-          {mode === "cluster" ? todaysActiveCustomers + 10 : todaysActiveCustomers} |{" "}
+          <span className="font-semibold">Total:</span> {totalCustomers} |{" "}
+          <span className="font-semibold">Active:</span> {todaysActiveCustomers} |{" "}
           <span className="font-semibold">Expired:</span> {totalExpired} |{" "}
           <span className="font-semibold">Leave:</span> 
           <span className={`${todaysLeave > 0 ? "text-red-600" : "text-gray-700"}`}>
@@ -77,29 +82,35 @@ const PointStatisticsCard  = ({ point }) => {
         </div>
         <div className="flex space-x-2 mt-2">
           <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-semibold">
-            B: {mode === "cluster" ? totalBreakfast + 10 : totalBreakfast} 
+            B: {totalBreakfast}
           </span>
           <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-semibold">
-            L: {mode === "cluster" ? totalLunch + 10 : totalLunch} 
+            L: {totalLunch}
           </span>
           <span className="bg-yellow-100 text-orange-600 px-2 py-1 rounded text-xs font-semibold">
-            D: {mode === "cluster" ? totalDinner + 10 : totalDinner} 
+            D: {totalDinner}
           </span>
         </div>
-        {/* Veg Info */}
-        <div className="mt-2">
-          <span className="text-green-800 px-2 py-1 rounded text-xs font-semibold flex items-center">
+          {/* New Veg Information */}
+          <div className="mt-2">
+          <span className=" text-green-800 px-2 py-1 rounded text-xs font-semibold flex items-center">
+            {/* You can use an icon if you prefer */}
             <LeafIcon className="w-4 h-4 mr-1" />
-            Veg: {totalVegNeededToday ? totalVegNeededToday : '0'}/{totalVeg ? totalVeg : '0'}
-            <span className="text-green-800 px-2 py-1 ml-3 rounded text-xs font-semibold flex items-center">
-              (B:{vegBreakfastToday ? vegBreakfastToday : '0'}, L:{vegLunchToday ? vegLunchToday : '0'}, D:{vegDinnerToday ? vegDinnerToday : '0'})
-            </span>
+            Veg: {totalVegNeededToday?totalVegNeededToday:'0'}/{totalVeg?totalVeg:'0'}
+            <span className=" text-green-800 px-2 py-1 ml-3 rounded text-xs font-semibold flex items-center">
+          
+          (   B:{vegBreakfastToday?vegBreakfastToday:'0'} ,     L:{vegLunchToday?vegLunchToday:'0'}    , D:{vegDinnerToday?vegDinnerToday:'0'})
+           </span>
           </span>
+          
+       
+     
         </div>
       </section>
     </div>
   );
 };
+
 
 export function Home() {
   const dispatch = useDispatch();
@@ -112,12 +123,10 @@ export function Home() {
   const [users, setUsers] = useState(customers);
   const [points, setPoints] = useState([]);
 
-  // Modified to accept a date param
-  const fetchPointsWithStatistics = async (selectedDate) => {
+  // Fetch Points with Statistics
+  const fetchPointsWithStatistics = async () => {
     try {
-      setLoading(true);
-      const isoDate = selectedDate.toISOString().split("T")[0];
-      const response = await axios.get(`${BaseUrl}/api/pointsWithStatistics?date=${isoDate}`);
+      const response = await axios.get(`${BaseUrl}/api/pointsWithStatistics`);
       setPoints(response.data);
       setLoading(false);
     } catch (error) {
@@ -129,12 +138,11 @@ export function Home() {
 
   useEffect(() => {
     const updateStatistics = async () => {
+      setLoading(true);
       setError("");
       try {
-        // Also fetch or update your general statistics if needed:
         await fetchStatistics(date.toISOString().split("T")[0]);
-        // Pass the date to fetchPointsWithStatistics
-        await fetchPointsWithStatistics(date);
+        await fetchPointsWithStatistics();
       } catch (err) {
         setError("Error fetching statistics. Please try again later.");
       } finally {
@@ -143,24 +151,24 @@ export function Home() {
     };
 
     updateStatistics();
-    // If needed, you can dispatch(fetchCustomers()) here
+    // Optionally, you can dispatch(fetchCustomers()) here if needed
   }, [date]);
 
   const handleUpdate = (user) => {
     navigate(`/dashboard/edit`, { state: { user } });
   };
 
-  const handleDateChange = (selectedDate) => {
-    setDate(selectedDate);
+  const handleDateChange = (date) => {
+    setDate(date);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <Spinner color="blue" />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen bg-gray-100">
+  //       <Spinner color="blue" />
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -174,16 +182,6 @@ export function Home() {
 
   return (
     <div className="mt-3 p-2 bg-gray-100 min-h-screen">
-      {/* -- Add DatePicker here -- */}
-      <div className="mb-5 flex items-center space-x-3">
-        <DatePicker
-          selected={date}
-          onChange={handleDateChange}
-          dateFormat="yyyy-MM-dd"
-          className="p-2 border rounded relative z-19"
-        />
-      </div>
-
       {/* Overall Statistics Cards */}
       <div className="mb-5 grid gap-y-3 gap-x-3 grid-cols-3">
         <StatisticsCard
@@ -192,7 +190,7 @@ export function Home() {
           veg={points.reduce((acc, point) => acc + point.totalVeg, 0)}
           icon={<UserGroupIcon />}
           color="blue"
-        />
+        />{console.log('me:',points)}
         <StatisticsCard
           title="Active"
           value={points.reduce((acc, point) => acc + point.todaysActiveCustomers, 0)}

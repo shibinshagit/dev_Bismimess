@@ -111,7 +111,7 @@ function Add() {
   // Handle User Type Change
   const handleUserTypeChange = (value) => {
     setUserType(value);
-    if (value === 'individual' || value === 'Bulk') {
+    if (value === 'individual') {
       setSelectedGroup('');
     }
   };
@@ -411,7 +411,6 @@ function Add() {
               >
                 <Option value="individual">Individual</Option>
                 <Option value="group">Group</Option>
-                <Option value="Bulk">Bulk</Option>
               </Select>
             </div>
 

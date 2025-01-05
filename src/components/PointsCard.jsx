@@ -38,6 +38,20 @@ const UserItem = ({ user }) => (
       <Typography variant="small" color="blue-gray" className="font-medium">
         {user.name}
       </Typography>
+      <div>
+        <h3>Meal Plan:</h3>
+        {user.latestOrder?.plan && user.latestOrder.plan.length > 0 ? (
+          <ul>
+            {user.latestOrder.plan.map((element, index) => (
+              <li key={index} className="bg-blue-100 text-blue-800 p-2 rounded mb-2">
+                {element}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No plan available for the latest order.</p>
+        )}
+      </div>
       <Typography variant="small" color="gray" className="text-xs">
         {user.phone}
       </Typography>
