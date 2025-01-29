@@ -20,7 +20,6 @@ import {
   Switch,
 } from "@material-tailwind/react";
 import { useDispatch } from 'react-redux';
-import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { PlusIcon } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -267,8 +266,39 @@ function Add() {
       });
 
       if (response.status === 200) {
-        Swal.fire('Success', 'User added successfully', 'success');
-        // Reset form data
+        // Determine the plan type
+        const planType =
+          formData.plan.length === 1
+            ? "1 Time plan"
+            : formData.plan.length === 2
+            ? "2 Times plan"
+            : "3 Times plan";
+      
+        // Construct the greeting message
+        const message = encodeURIComponent(
+          `Hello ${formData.name},\n\nThank you for choosing Bismi Mess!...🎉\n\nWe’ve received your payment of ₹${formData.amount} for the ${planType}. We are excited to serve you with delicious meals and ensure you have a great dining experience. 😊\n\nIf you need any assistance or have any special requests, feel free to reach out!\n\nEnjoy your meals! 🍽\n\nWarm Regards,\nBismi Mess\n📞 9995442239 | 🌐 bismimess.online`
+        );
+      
+        Swal.fire({
+          title: 'Success',
+          html: `
+            <p>User added successfully!</p>
+            <p>Would you like to send a WhatsApp message to <b>${formData.name}</b>?</p>
+            <a 
+              href="https://wa.me/${formData.phone}?text=${message}" 
+              target="_blank"
+              style="display: inline-block; margin-top: 15px; padding: 10px 20px; background-color: #25D366; color: white; border: none; border-radius: 5px; font-size: 16px; text-decoration: none; font-weight: bold; text-align: center; cursor: pointer;"
+            >
+              <i class="fab fa-whatsapp" style="margin-right: 10px;"></i>Send First Message
+            </a>
+          `,
+          icon: 'success',
+          showConfirmButton: false, // Hide the default confirm button
+          showCancelButton: true, // Show cancel button
+          cancelButtonText: 'Close',
+        });
+      
+        // Reset form data after success
         setFormData({
           name: '',
           phone: '',
@@ -287,7 +317,8 @@ function Add() {
         setImages([]);
         setImagePreviews([]);
         setUserType('individual'); // Reset to default
-      } else {
+      }
+       else {
         Swal.fire('Error', response.data.message, 'error');
       }
     } catch (error) {

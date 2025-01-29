@@ -20,6 +20,7 @@ const LeaveSection = ({
   handleEditLeave,
   handleDeleteLeave,
   plan = [],
+  name
 }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [currentLeave, setCurrentLeave] = useState(null);
@@ -83,7 +84,17 @@ const LeaveSection = ({
     <div className="mt-4">
 
         {/* Add Leave Section */}
-    
+        <h1 style={{ 
+  background: 'linear-gradient(45deg,rgb(56, 89, 68),rgb(46, 45, 42))', 
+  color: 'white',  
+  borderRadius: '0  10px', 
+  fontWeight: 'bold', 
+  fontSize: '2rem', 
+  textAlign: 'center', 
+}}>
+  {name}
+</h1>
+
         <div className="my-4">
         <Input
           type="date"

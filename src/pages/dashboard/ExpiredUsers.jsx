@@ -1,13 +1,12 @@
 // src/pages/ExpiredUsers.jsx
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Typography,
   Spinner,
 } from "@material-tailwind/react";
-import { BaseUrl } from "@/constants/BaseUrl"; // Ensure this points to your backend
 import PointCard from "@/components/PointsCardExpiry";
+import { ExpiresToday } from "@/services/apiCalls";
 
 export function ExpiredUsers ()  {
   const [pointsData, setPointsData] = useState([]);
@@ -17,9 +16,8 @@ export function ExpiredUsers ()  {
   // Fetch Points with Expired Users Data
   const fetchPointsWithExpiredUsers = async () => {
     try {
-      const response = await axios.get(`${BaseUrl}/api/pointsWithExpiredUsers`); // Ensure correct endpoint
-      console.log("Fetched Points Data:", response.data);
-      setPointsData(response.data);
+      const response = await ExpiresToday();
+      setPointsData(response || []);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching points with expired users:", err);

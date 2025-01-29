@@ -1,42 +1,68 @@
 // src/pages/Home.jsx
-
 import React, { useState, useEffect } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import {
-  Typography,
-  Spinner,
-} from "@material-tailwind/react";
-import {
-  StatisticsChart,
-} from "@/widgets/charts";
-import {
-  fetchStatistics, // Update this if necessary
-} from "@/data";
-import { CheckCircleIcon, ClockIcon, UserGroupIcon, CurrencyDollarIcon,  } from "@heroicons/react/24/solid";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchCustomers } from "@/redux/reducers/authSlice";
 import { useNavigate } from "react-router-dom";
-import { useMaterialTailwindController } from "@/context";
-import { BaseUrl } from "@/constants/BaseUrl";
-import axios from "axios";
-
-
-
-import { Card, CardHeader, CardBody } from "@material-tailwind/react";
-import {  XCircleIcon } from "@heroicons/react/24/solid";
-import { StatisticsCard } from "@/widgets/cards";
+import { CheckCircleIcon, ClockIcon, UserGroupIcon, XCircleIcon } from "@heroicons/react/24/solid";
 import { LeafIcon } from "lucide-react";
+import { Card, Typography } from "@material-tailwind/react";
+import PropTypes from "prop-types";
+import { pointsWithStatistics } from "@/services/apiCalls";
 
+// --- StatisticsCard (inline) ---
+const shineKeyframes = `
+@keyframes shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+`;
+const styles = {
+  shiningEffect: {
+    background: "linear-gradient(270deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.5) 100%)",
+    backgroundSize: "200% 100%",
+    animation: "shine 1.5s infinite",
+  },
+};
 
-const PointStatisticsCard  = ({ point }) => {
+export function StatisticsCard({ icon, title, value, veg }) {
+  return (
+    <>
+      <style>{shineKeyframes}</style>
+      <Card className="border bg-gray-400 border-blue-gray-100 shadow-sm p-3 relative overflow-hidden">
+        <div className="absolute inset-0" style={styles.shiningEffect}></div>
+        <div className="relative z-10 flex flex-col items-center gap-1">
+          <Typography variant="small" className="font-medium text-blue-gray-700">
+            {title}
+          </Typography>
+          <Typography variant="h4" color="blue-gray" className="font-semibold">
+            {value}
+          </Typography>
+        </div>
+        <div className="mt-2">
+          <span className="flex items-center text-xs font-semibold text-green-800">
+            <LeafIcon className="w-4 h-4 mr-1" />
+            Veg: {veg || "0"}
+          </span>
+        </div>
+      </Card>
+    </>
+  );
+}
+StatisticsCard.propTypes = {
+  icon: PropTypes.node.isRequired,
+  title: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  veg: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
+// --- PointStatisticsCard (inline) ---
+function PointStatisticsCard({ point }) {
   const navigate = useNavigate();
   const {
+    _id,
     place,
     mode,
+    todaysLeave,
     totalCustomers,
     todaysActiveCustomers,
-    todaysLeave,
     totalExpired,
     totalBreakfast,
     totalLunch,
@@ -45,23 +71,21 @@ const PointStatisticsCard  = ({ point }) => {
     totalVeg,
     vegBreakfastToday,
     vegLunchToday,
-    vegDinnerToday
+    vegDinnerToday,
   } = point;
 
   return (
     <div
       className={`p-4 shadow-sm rounded-md border ${
         todaysLeave > 0 ? "border-red-500" : "border-gray-500"
-      } transition-transform transform hover:scale-105 cursor-pointer`}
-      onClick={() => navigate(`/dashboard/tables/${point._id}`)}
-      aria-label={`View details for ${place}`}
+      } hover:scale-105 transition-transform cursor-pointer`}
+      onClick={() => navigate(`/dashboard/tables/${_id}`)}
+      onKeyPress={(e) => e.key === "Enter" && navigate(`/dashboard/tables/${_id}`)}
       tabIndex={0}
-      onKeyPress={(e) => {
-        if (e.key === 'Enter') navigate(`/dashboard/tables/${point._id}`);
-      }}
+      aria-label={`View details for ${place}`}
     >
       <header className="flex justify-between items-center mb-2">
-        <Typography variant="h6" className="text-gray-800 font-bold">
+        <Typography variant="h6" className="font-bold text-gray-800">
           {place} ({mode === "cluster" ? "C" : "S"})
         </Typography>
         {todaysLeave > 0 ? (
@@ -70,17 +94,19 @@ const PointStatisticsCard  = ({ point }) => {
           <CheckCircleIcon className="w-4 h-4 text-green-500" />
         )}
       </header>
-      <section className="space-y-2">
-        <div className="text-sm text-gray-700">
+
+      <section className="space-y-2 text-sm text-gray-700">
+        <div>
           <span className="font-semibold">Total:</span> {totalCustomers} |{" "}
           <span className="font-semibold">Active:</span> {todaysActiveCustomers} |{" "}
           <span className="font-semibold">Expired:</span> {totalExpired} |{" "}
-          <span className="font-semibold">Leave:</span> 
-          <span className={`${todaysLeave > 0 ? "text-red-600" : "text-gray-700"}`}>
+          <span className="font-semibold">Leave:</span>{" "}
+          <span className={todaysLeave > 0 ? "text-red-600" : "text-gray-700"}>
             {todaysLeave}
           </span>
         </div>
-        <div className="flex space-x-2 mt-2">
+
+        <div className="flex space-x-2">
           <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-semibold">
             B: {totalBreakfast}
           </span>
@@ -91,84 +117,40 @@ const PointStatisticsCard  = ({ point }) => {
             D: {totalDinner}
           </span>
         </div>
-          {/* New Veg Information */}
-          <div className="mt-2">
-          <span className=" text-green-800 px-2 py-1 rounded text-xs font-semibold flex items-center">
-            {/* You can use an icon if you prefer */}
-            <LeafIcon className="w-4 h-4 mr-1" />
-            Veg: {totalVegNeededToday?totalVegNeededToday:'0'}/{totalVeg?totalVeg:'0'}
-            <span className=" text-green-800 px-2 py-1 ml-3 rounded text-xs font-semibold flex items-center">
-          
-          (   B:{vegBreakfastToday?vegBreakfastToday:'0'} ,     L:{vegLunchToday?vegLunchToday:'0'}    , D:{vegDinnerToday?vegDinnerToday:'0'})
-           </span>
+
+        <div className="flex items-center text-sm">
+          <LeafIcon className="w-4 h-4 mr-1 text-green-800" />
+          Veg: {totalVegNeededToday || "0"}/{totalVeg || "0"}
+          <span className="ml-3 text-green-800 text-xs font-semibold">
+            (B: {vegBreakfastToday || "0"}, L: {vegLunchToday || "0"}, D: {vegDinnerToday || "0"})
           </span>
-          
-       
-     
         </div>
       </section>
     </div>
   );
-};
+}
 
-
+// --- Main Home Component ---
 export function Home() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const customers = useSelector((state) => state.auth.customers);
-  const [date, setDate] = useState(new Date());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [controller] = useMaterialTailwindController();
-  const [users, setUsers] = useState(customers);
   const [points, setPoints] = useState([]);
-
-  // Fetch Points with Statistics
-  const fetchPointsWithStatistics = async () => {
-    try {
-      const response = await axios.get(`${BaseUrl}/api/pointsWithStatistics`);
-      setPoints(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching points with statistics:", error);
-      setError("Error fetching points. Please try again later.");
-      setLoading(false);
-    }
-  };
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const updateStatistics = async () => {
-      setLoading(true);
-      setError("");
+    const fetchPoints = async () => {
       try {
-        await fetchStatistics(date.toISOString().split("T")[0]);
-        await fetchPointsWithStatistics();
-      } catch (err) {
-        setError("Error fetching statistics. Please try again later.");
+        setLoading(true);
+        setError("");
+        const  data  = await pointsWithStatistics()
+        setPoints(data);
+      } catch {
+        setError("Error fetching data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
-
-    updateStatistics();
-    // Optionally, you can dispatch(fetchCustomers()) here if needed
-  }, [date]);
-
-  const handleUpdate = (user) => {
-    navigate(`/dashboard/edit`, { state: { user } });
-  };
-
-  const handleDateChange = (date) => {
-    setDate(date);
-  };
-
-  // if (loading) {
-  //   return (
-  //     <div className="flex justify-center items-center h-screen bg-gray-100">
-  //       <Spinner color="blue" />
-  //     </div>
-  //   );
-  // }
+    fetchPoints();
+  }, []);
 
   if (error) {
     return (
@@ -180,66 +162,48 @@ export function Home() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <Typography>Loading...</Typography>
+      </div>
+    );
+  }
+
+  // Aggregate totals
+  const total = points.reduce((acc, p) => acc + p.totalCustomers, 0);
+  const active = points.reduce((acc, p) => acc + p.todaysActiveCustomers, 0);
+  const leave = points.reduce((acc, p) => acc + p.todaysLeave, 0);
+  const breakfast = points.reduce((acc, p) => acc + p.totalBreakfast, 0);
+  const lunch = points.reduce((acc, p) => acc + p.totalLunch, 0);
+  const dinner = points.reduce((acc, p) => acc + p.totalDinner, 0);
+  const totalVeg = points.reduce((acc, p) => acc + (p.totalVeg || 0), 0);
+  const neededVeg = points.reduce((acc, p) => acc + (p.totalVegNeededToday || 0), 0);
+  const leaveVeg = points.reduce((acc, p) => acc + (p.vegOnLeaveToday || 0), 0);
+  const breakfastVeg = points.reduce((acc, p) => acc + (p.vegBreakfastToday || 0), 0);
+  const lunchVeg = points.reduce((acc, p) => acc + (p.vegLunchToday || 0), 0);
+  const dinnerVeg = points.reduce((acc, p) => acc + (p.vegDinnerToday || 0), 0);
+
   return (
     <div className="mt-3 p-2 bg-gray-100 min-h-screen">
-      {/* Overall Statistics Cards */}
-      <div className="mb-5 grid gap-y-3 gap-x-3 grid-cols-3">
-        <StatisticsCard
-          title="Total"
-          value={points.reduce((acc, point) => acc + point.totalCustomers, 0)}
-          veg={points.reduce((acc, point) => acc + point.totalVeg, 0)}
-          icon={<UserGroupIcon />}
-          color="blue"
-        />{console.log('me:',points)}
-        <StatisticsCard
-          title="Active"
-          value={points.reduce((acc, point) => acc + point.todaysActiveCustomers, 0)}
-          veg={points.reduce((acc, point) => acc + point.totalVegNeededToday, 0)}
-          icon={<CheckCircleIcon />}
-          color="green"
-        />
-        <StatisticsCard
-          title="Leave"
-          value={points.reduce((acc, point) => acc + point.todaysLeave, 0)}
-          veg={points.reduce((acc, point) => acc + point.vegOnLeaveToday, 0)}
-          icon={<ClockIcon />}
-          color="red"
-        />
-        <StatisticsCard
-          title="Breakfast"
-          value={points.reduce((acc, point) => acc + point.totalBreakfast, 0)}
-          veg={points.reduce((acc, point) => acc + point.vegBreakfastToday, 0)}
-          icon={<ClockIcon />}
-          color="orange"
-        />
-        <StatisticsCard
-          title="Lunch"
-          value={points.reduce((acc, point) => acc + point.totalLunch, 0)}
-          veg={points.reduce((acc, point) => acc + point.vegLunchToday, 0)}
-          icon={<ClockIcon />}
-          color="green"
-        />
-        <StatisticsCard
-          title="Dinner"
-          value={points.reduce((acc, point) => acc + point.totalDinner, 0)}
-          veg={points.reduce((acc, point) => acc + point.vegDinnerToday, 0)}
-          icon={<ClockIcon />}
-          color="blue"
-        />
+      {/* Overall Statistics */}
+      <div className="grid gap-3 grid-cols-3 mb-5">
+        <StatisticsCard icon={<UserGroupIcon />} title="Total" value={total} veg={totalVeg} />
+        <StatisticsCard icon={<CheckCircleIcon />} title="Active" value={active} veg={neededVeg} />
+        <StatisticsCard icon={<ClockIcon />} title="Leave" value={leave} veg={leaveVeg} />
+        <StatisticsCard icon={<ClockIcon />} title="Breakfast" value={breakfast} veg={breakfastVeg} />
+        <StatisticsCard icon={<ClockIcon />} title="Lunch" value={lunch} veg={lunchVeg} />
+        <StatisticsCard icon={<ClockIcon />} title="Dinner" value={dinner} veg={dinnerVeg} />
       </div>
 
-      {/* Points with Statistics */}
-      <Typography className="font-bold text-dark-600 text-center">
-        <strong>Active Locations</strong>
-      </Typography>
+      <Typography className="font-bold text-center mb-3">Active Locations</Typography>
 
-      <div className="mt-3 mb-16 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {points.map((point) => (
-          <PointStatisticsCard key={point._id} point={point} navigate={navigate} />
+          <PointStatisticsCard key={point._id} point={point} />
         ))}
       </div>
     </div>
   );
 }
-
 export default Home;

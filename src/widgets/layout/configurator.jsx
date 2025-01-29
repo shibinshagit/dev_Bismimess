@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { 
   XMarkIcon, 
-  Cog6ToothIcon, 
   UserPlusIcon, 
   TrashIcon, 
   BanknotesIcon, 
@@ -11,14 +10,11 @@ import {
 import {
   Button,
   IconButton,
-  Switch,
   Typography,
   Card,
   CardBody,
   List,
   ListItem,
-  ListIcon,
-  Tooltip,
 } from "@material-tailwind/react";
 import {
   useMaterialTailwindController,
@@ -29,7 +25,7 @@ import {
   setShowConnections,
 } from "@/context";
 import { useDispatch, useSelector } from "react-redux";
-import { attREf, logout } from "@/redux/reducers/authSlice";
+import { logout } from "@/redux/reducers/authSlice";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { BaseUrl } from "@/constants/BaseUrl";

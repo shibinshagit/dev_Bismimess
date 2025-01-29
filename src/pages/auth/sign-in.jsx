@@ -1,16 +1,14 @@
 import React, { useEffect } from 'react';
 import {
-  Card,
   Input,
   Button,
   Typography,
 } from "@material-tailwind/react";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
-import { BaseUrl } from '../../constants/BaseUrl';
+
 import { useDispatch, useSelector } from 'react-redux';
-import {fetchCustomers, loginSuccess } from '@/redux/reducers/authSlice';
-import { login } from '@/services/apiMethods';
+import { loginSuccess } from '@/redux/reducers/authSlice';
+import { login } from '@/services/apiCalls';
 
 export function SignIn() {
   const dispatch = useDispatch();
@@ -67,11 +65,7 @@ export function SignIn() {
                 name="email"
                 label="Email"
                 required
-              />
-
-
-
-          
+              />   
               <Input
                 type="password"
                 size="lg"

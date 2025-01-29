@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { BaseUrl } from '@/constants/BaseUrl';
 import { SearchIcon, XIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { PendingPayment } from '@/services/apiCalls';
 
 export function Pendings() {
   const [pendingOrders, setPendingOrders] = useState([]);
@@ -19,9 +18,9 @@ export function Pendings() {
       setError("");
       try {
         // Adjust the endpoint as needed
-        const response = await axios.get(`${BaseUrl}/api/paymentStatus/pending`);
-        setPendingOrders(response.data);
-        setFilteredOrders(response.data);
+        const response = await PendingPayment();
+        setPendingOrders(response || []);
+        setFilteredOrders(response || []);
       } catch (err) {
         console.error("Error fetching pending orders:", err);
         setError("Failed to fetch pending orders");

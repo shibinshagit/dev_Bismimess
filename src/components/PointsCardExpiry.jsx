@@ -245,10 +245,15 @@ const UserItem = ({ user, onUserDeleted, onOrderRenewed }) => {
         dataToSend
       );
       if (response.status === 200) {
-        alert("Order renewed successfully.");
+        // alert("Order renewed successfully.");
         if (onOrderRenewed) onOrderRenewed(user._id);
         setOpenRenewDialog(false);
-      } else {
+    
+        if (confirm("success! Do you want to greet the customer?")) {
+            window.open(`https://wa.me/91${user.phone}`, "_blank");
+        }
+    }
+     else {
         alert(`Error renewing order: ${response.data.message}`);
       }
     } catch (error) {

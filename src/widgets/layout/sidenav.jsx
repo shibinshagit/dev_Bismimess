@@ -134,7 +134,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
 )}
 
 
-  {/* Floating Action Button - Styled like OLX */}
+  {/* Floating Action Button */}
 <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
   <button
     className="h-12 w-12 bg-gray-900 hover:bg-dark-600 text-white rounded-full shadow-md flex items-center justify-center transition duration-200 ease-in-out"

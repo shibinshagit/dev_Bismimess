@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { BaseUrl } from "@/constants/BaseUrl";
 import io from 'socket.io-client';
+import { deleteNote, markAsRead, Notes } from "@/services/apiCalls";
 
-const socket = io('https://admin.bismimess.online', {
+const socket = io('http://localhost:3000', {
   transports: ["websocket"],
   debug: true,
     });
-const TODAY = new Date().toISOString().split("T")[0];
+// const socket = io('https://admin.bismimess.online', {
+//   transports: ["websocket"],
+//   debug: true,
+//     });
+const TODAY = new Date().toLocaleDateString("en-CA"); 
+console.log(TODAY);
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -23,8 +27,8 @@ const Notify = () => {
     setLoading(true);
     setError("");
     try {
-      const res = await axios.get(`${BaseUrl}/api/notes`);
-      setNotes(res.data);
+      const res = await Notes()
+      setNotes(res || []);
     } catch (err) {
       console.error("Error fetching notes:", err);
       setError("Failed to fetch notes.");
@@ -48,8 +52,7 @@ const Notify = () => {
 
   const handleMarkAsRead = async (id, currentNote) => {
     try {
-      const updated = { ...currentNote, markAsRead: true };
-      await axios.put(`${BaseUrl}/api/notes/${id}`, updated);
+      await markAsRead(id, { ...currentNote, markAsRead: true });
       setNotes((prevNotes) =>
         prevNotes.map((note) =>
           note._id === id ? { ...note, markAsRead: true } : note
@@ -62,7 +65,7 @@ const Notify = () => {
 
   const handleDeleteNote = async (id) => {
     try {
-      await axios.delete(`${BaseUrl}/api/notes/${id}`);
+      await deleteNote(id);
       setNotes((prevNotes) => prevNotes.filter((note) => note._id !== id));
     } catch (err) {
       console.error("Error deleting note:", err);

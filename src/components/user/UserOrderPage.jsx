@@ -18,6 +18,7 @@ function OrdersList() {
   const [orders, setOrders] = useState([]);
   const [activeOrderId, setActiveOrderId] = useState(null);
   const [userName, setUserName] = useState('');
+  const [phone, setPhone] = useState('');
   const [showAddOrderModal, setShowAddOrderModal] = useState(false);
 
   // For adding/editing orders
@@ -54,6 +55,7 @@ function OrdersList() {
     try {
       const response = await axios.get(`${BaseUrl}/api/user/${userId}`);
       setUserName(response.data.name);
+      setPhone(response.data.phone);
     } catch (error) {
       console.error('Error fetching user name:', error);
     }
@@ -142,7 +144,10 @@ function OrdersList() {
         data: orderFormData,
       });
 
-      Swal.fire('Success', 'Order saved successfully.', 'success');
+      if (confirm("suceess! Do you want to greet the customer?")) {
+        window.open(`https://wa.me/91${phone}`, "_blank");
+    }
+      // Swal.fire('Success', 'Order saved successfully.', 'success');
       setShowAddOrderModal(false);
       fetchOrders();
     } catch (error) {

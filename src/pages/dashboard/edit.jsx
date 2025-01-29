@@ -10,10 +10,10 @@ import {
   Option, Select ,Switch, Menu, MenuHandler, MenuList, MenuItem, IconButton,
   Avatar
 } from "@material-tailwind/react";
-import { fetchCustomers } from '@/redux/reducers/authSlice';
 import { BaseUrl } from '../../constants/BaseUrl';
 import './swal.css';
 import LeaveSection from '@/components/LeaveSection';
+import { addLeave, AddPoints, editLeave, getGroups, getUser, Points, updateUser } from '@/services/apiCalls';
 
 
 /* Reusable Components */
@@ -158,8 +158,8 @@ const [dropdownOpen, setDropdownOpen] = useState(false);
   // Fetch Points
   const fetchPoints = async () => {
     try {
-      const response = await axios.get(`${BaseUrl}/api/points`);
-      setPointsList(response.data);
+      const response = await Points();
+      setPointsList(response || []);
     } catch (error) {
       console.error("Error fetching points:", error);
     }
@@ -167,9 +167,8 @@ const [dropdownOpen, setDropdownOpen] = useState(false);
   // Fetch groups
   const fetchGroups = async () => {
     try {
-      const response = await axios.get(`${BaseUrl}/api/groups`);
-      setGroupsList(response.data);
-      console.log('f',response.data);
+      const response = await getGroups();
+      setGroupsList(response || []);
     } catch (error) {
       console.error("Error fetching groups:", error);
       Swal.fire('Error', 'Failed to fetch groups.', 'error');
@@ -180,9 +179,8 @@ const [dropdownOpen, setDropdownOpen] = useState(false);
   // Fetch User by ID
   const fetchUserById = async (userId) => {
     try {
-      const response = await axios.get(`${BaseUrl}/api/user/${userId}`);
-      setUser(response.data);
-      console.log(response.data);
+      const response = await getUser(userId);
+      setUser(response || []);
       // Set existing images
       setExistingImages(response.data.images || []);
     } catch (err) {
@@ -287,8 +285,8 @@ const handleGroupOnPoints = (point) => {
   // Add a new point
   const handleAddNewPoint = async () => {
     try {
-      const response = await axios.post(`${BaseUrl}/api/points`, newPoint);
-      const addedPoint = response.data;
+      const response = AddPoints(newPoint);
+      const addedPoint = response;
       setPointsList([...pointsList, addedPoint]);
       setFormData(prevFormData => ({
         ...prevFormData,
@@ -451,26 +449,22 @@ const handleGroupOnPoints = (point) => {
         data.append('images', image);
       });
   
-      const response = await axios.put(`${BaseUrl}/api/updateUser/${user._id}`, data, {
+      const response = await updateUser(user._id, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
   
-      if (response.status === 200) {
+      if (response.message) {
         // Handle success
-        Swal.fire('Success', 'User updated successfully', 'success');
+        Swal.fire('Success', response.message , 'success');
         navigate(-1); // Go back to the previous page
       } else {
-        Swal.fire('Error', response.data.message, 'error');
+        Swal.fire('Error', response.message, 'error');
       }
     } catch (error) {
-      // Handle error
-      if (error.response && error.response.status === 400) {
-        Swal.fire('Error', error.response.data.message, 'error');
-      } else {
-        Swal.fire('Error', 'Error updating user', 'error');
-      }
+        Swal.fire('Error', error.message, 'error');
+     
     }
   };
   
@@ -486,48 +480,43 @@ const handleGroupOnPoints = (point) => {
     }
   
     try {
-      const response = await axios.post(`${BaseUrl}/api/addLeave/${user.latestOrder._id}`, {
+      const response = await addLeave(user.latestOrder._id, {
         leaveStart,
         leaveEnd,
         meals,
       });
-      if (response.status === 200) {
-        dispatch(fetchCustomers());
-        Swal.fire('Success', 'Leave added successfully', 'success');
+      if (response.message) {
+        Swal.fire('Success', response.message, 'success');
         fetchUserById(user._id);
         setLeaveFormData({ leaveStart: '', leaveEnd: '', meals: [] }); // Reset form data
       } else {
-        Swal.fire('Error', response.data.message || 'Error adding leave', 'error');
+        Swal.fire('Error', response.message || 'Error adding leave', 'error');
       }
     } catch (error) {
-      console.error('Error adding leave:', error.response?.data?.message || error.message);
-      if (error.response && error.response.status === 400) {
-        Swal.fire('Error', error.response.data.message, 'error');
-      } else {
-        Swal.fire('Error', 'An error occurred while adding leave.', 'error');
-      }
+      console.error('Error adding leave:', error?.message || error.message);
+   
+        Swal.fire('Error', error.message, 'error');
+      
     }
   };
 
   // Handle Edit Leave
   const handleEditLeave = async (leave) => {
     try {
-      const response = await axios.put(
-        `${BaseUrl}/api/editLeave/${user.latestOrder._id}/${leave._id}`,
+      const response = await editLeave(user.latestOrder._id, leave._id,
         {
           leaveStart: leave.start,
           leaveEnd: leave.end,
           meals: leave.meals,
         });
-      if (response.status === 200) {
-        dispatch(fetchCustomers());
-        Swal.fire('Success', 'Leave updated successfully', 'success');
+      if (response.message) {
+        Swal.fire('Success', response.message, 'success');
         fetchUserById(user._id);
       } else {
-        Swal.fire('Error', response.data.message || 'Error updating leave', 'error');
+        Swal.fire('Error', response.message || 'Error updating leave', 'error');
       }
     } catch (error) {
-      console.error('Error updating leave:', error.response?.data?.message || error.message);
+      console.error('Error updating leave:', error?.message || error.message);
       Swal.fire('Error', 'An error occurred while updating leave.', 'error');
     }
   };
@@ -547,7 +536,6 @@ const handleGroupOnPoints = (point) => {
         try {
           const response = await axios.delete(`${BaseUrl}/api/deleteLeave/${user.latestOrder._id}/${leaveId}`);
           if (response.status === 200) {
-            dispatch(fetchCustomers());
             Swal.fire('Deleted!', 'Leave has been deleted.', 'success');
             fetchUserById(user._id);
           } else {
@@ -578,7 +566,6 @@ const handleGroupOnPoints = (point) => {
         try {
           const response = await axios.delete(`${BaseUrl}/api/users/${user._id}`);
           if (response.status === 200) {
-            dispatch(fetchCustomers());
             Swal.fire('Deleted!', 'User has been deleted.', 'success');
             navigate('/dashboard/home');
           } else {
@@ -1020,6 +1007,7 @@ const handleGroupOnPoints = (point) => {
                 handleEditLeave={handleEditLeave}
                 handleDeleteLeave={handleDeleteLeave}
                 plan={formData.plan}
+                name={formData.name}
             
               />
             )}

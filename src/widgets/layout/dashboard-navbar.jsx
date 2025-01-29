@@ -20,10 +20,14 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { BaseUrl } from "@/constants/BaseUrl"; // If your BaseUrl is defined here
 import io from 'socket.io-client';
-const socket = io('https://admin.bismimess.online', {
+const socket = io('http://localhost:3000', {
   transports: ["websocket"],
   debug: true,
     });
+// const socket = io('https://admin.bismimess.online', {
+//   transports: ["websocket"],
+//   debug: true,
+//     });
 
 
 export function DashboardNavbar() {
@@ -88,18 +92,19 @@ export function DashboardNavbar() {
     settings: { showSearch: true },
     Global: { showSearch: true },
     accounts: { title: "Transactions" },
-    "deleted-users": { title: "Deleted Users" },
+    "deleted-users": { title: "Deleted Users"  ,showSearch: true},
     Expiry: { title: "Expired Customers", showSearch: true },
     leave: { title: "Leaves Today", showSearch: true },
     delivery: { addButton: true },
     notify: { title: " ", addButton: true },
+    edit: { title: " ", addButton: true , showSearch: true},
+    userOrder: { title: " ", addButton: true , showSearch: true},
   };
 
   const { title, showSearch, addButton, notifications, toggle } = pageConfig[page] || {};
 
   return (
     <Navbar
-      color=""
       className={`bg-white text-white rounded transition-all ${
         fixedNavbar ? "sticky top-0 z-40 py-3 shadow-md shadow-blue-gray-500/5" : "sticky top-0 px-0 py-1 z-40 p-3"
       } lg:border-2 border-gray-300 lg:m-2 lg:rounded-xl`}

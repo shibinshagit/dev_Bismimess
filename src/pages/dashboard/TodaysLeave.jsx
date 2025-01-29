@@ -1,13 +1,12 @@
 // src/pages/TodaysLeave.jsx
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Typography,
   Spinner,
 } from "@material-tailwind/react";
-import { BaseUrl } from "@/constants/BaseUrl"; // Ensure this points to your backend
 import PointCard from "@/components/PointsCard";
+import { LeavesToday } from "@/services/apiCalls";
 
 export function TodaysLeave () {
   const [pointsData, setPointsData] = useState([]);
@@ -17,9 +16,9 @@ export function TodaysLeave () {
   // Fetch Points with Leave Today Data
   const fetchPointsWithLeaveToday = async () => {
     try {
-      const response = await axios.get(`${BaseUrl}/api/pointsWithLeaveToday`); // Ensure correct endpoint
-      console.log("Fetched Points Data:", response.data);
-      setPointsData(response.data);
+      const response = await LeavesToday()
+      console.log("Fetched Points Data:", response);
+      setPointsData(response || []);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching points with leave today:", err);
