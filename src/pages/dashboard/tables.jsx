@@ -144,7 +144,7 @@ const { searchTerm, showConnections } = controller;
   
   Bismi Mess Payment Method:
   
-  Pay to - 7012975494 (Shibin Sha)
+  Pay to - 9847952414 (Shebeer km)
   (GPay, PhonePe, Paytm, other UPI)
   
   (Send the screenshot after payment)
