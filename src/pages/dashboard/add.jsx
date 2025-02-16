@@ -1,6 +1,8 @@
 // src/components/Add.js
 
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { BaseUrl } from '../../constants/BaseUrl';
 import {
   Card,
   CardHeader,
@@ -20,41 +22,18 @@ import {
 import { useDispatch } from 'react-redux';
 import { PlusIcon } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { AddDeliveryBoy, AddPoints, CreatUser, deliveryBoys, getGroups, Points } from '@/services/apiCalls';
 
 function Add() {
-  const dispatch = useDispatch();
-
-  // -------------------- Points States --------------------
-  const [pointsList, setPointsList] = useState([]);
-  const [filteredPoints, setFilteredPoints] = useState([]);
-  const [pointInputValue, setPointInputValue] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [openPointModal, setOpenPointModal] = useState(false);
-  const [newPoint, setNewPoint] = useState({ place: '', mode: 'single' });
-  const [modalHeader, setModalHeader] = useState('Add New Point');
-
-  // -------------------- Groups States --------------------
-  const [groupsList, setGroupsList] = useState([]);
-  const [filteredGroups, setFilteredGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  // -------------------- Delivery Boy States --------------------
-  const [deliveryBoysList, setDeliveryBoysList] = useState([]);
-  const [filteredDeliveryBoys, setFilteredDeliveryBoys] = useState([]);
-  const [deliveryBoyInputValue, setDeliveryBoyInputValue] = useState('');
-  const [showDeliveryBoySuggestions, setShowDeliveryBoySuggestions] = useState(false);
-  const [openDeliveryBoyModal, setOpenDeliveryBoyModal] = useState(false);
-  const [newDeliveryBoy, setNewDeliveryBoy] = useState({ name: '', phone: '', code: '' });
-  const [selectedDeliveryBoy, setSelectedDeliveryBoy] = useState('');
-
-  // -------------------- Form & Other States --------------------
   const [images, setImages] = useState([]); // Store selected images
   const [imagePreviews, setImagePreviews] = useState([]); // Store image previews
-  const [error, setError] = useState(null); // State for error handling
-
-  const [userType, setUserType] = useState('individual'); // 'individual' or 'group'
+  const [pointsList, setPointsList] = useState([]);
+  const [groupsList, setGroupsList] = useState([]); // Store all groups
+  const [filteredGroups, setFilteredGroups] = useState([]); // Groups filtered by selected point
+  const [selectedGroup, setSelectedGroup] = useState(''); // Selected group ID
+  const [openPointModal, setOpenPointModal] = useState(false);
+  const [newPoint, setNewPoint] = useState({ place: '', mode: 'single' });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [modalHeader, setModalHeader] = useState('Add New Point');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -67,49 +46,43 @@ function Add() {
     paymentMethod: '',
     paymentId: '',
     isVeg: false,
-    deliveryBoy: '',
   });
+  const [pointInputValue, setPointInputValue] = useState(''); // New state for point input value
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredPoints, setFilteredPoints] = useState([]);
+  const [error, setError] = useState(null); // State for error handling
+  const [userType, setUserType] = useState('individual'); // 'individual' or 'group'
 
+  const dispatch = useDispatch();
 
-  // -------------------- Fetch Functions --------------------
+  // Fetch Points
   const fetchPoints = async () => {
     try {
-      const response = await Points();
-      setPointsList(response || []);
+      const response = await axios.get(`${BaseUrl}/api/points`);
+      setPointsList(response.data);
     } catch (error) {
       console.error("Error fetching points:", error);
       Swal.fire('Error', 'Failed to fetch points.', 'error');
     }
   };
 
+  // Fetch Groups
   const fetchGroups = async () => {
     try {
-      const response = await getGroups();
-      setGroupsList(response || []);
+      const response = await axios.get(`${BaseUrl}/api/groups`);
+      setGroupsList(response.data);
     } catch (error) {
       console.error("Error fetching groups:", error);
       Swal.fire('Error', 'Failed to fetch groups.', 'error');
     }
   };
 
-  const fetchDeliveryBoys = async () => {
-    try {
-      const response = await deliveryBoys();
-      setDeliveryBoysList(response || []);
-    } catch (error) {
-      console.error("Error fetching delivery boys:", error);
-      Swal.fire('Error', 'Failed to fetch delivery boys.', 'error');
-    }
-  };
-
-  // -------------------- useEffect --------------------
   useEffect(() => {
     fetchPoints();
-    fetchGroups();
-    fetchDeliveryBoys();
+    fetchGroups(); // Fetch groups on component mount
   }, []);
 
-  // -------------------- Handle New Point --------------------
+  // Handle New Point Input Change
   const handleNewPointChange = (e) => {
     const { name, value } = e.target;
     setNewPoint((prevPoint) => ({
@@ -118,90 +91,7 @@ function Add() {
     }));
   };
 
-  const handleAddNewPoint = async () => {
-    if (!newPoint.place.trim()) {
-      Swal.fire('Error', 'Place is required.', 'error');
-      return;
-    }
-    try {
-      const response = await AddPoints(newPoint);
-      const addedPoint = response.point;
-
-      setPointsList([...pointsList, addedPoint]);
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        point: addedPoint._id,
-      }));
-      setPointInputValue(addedPoint.place);
-      setOpenPointModal(false);
-      setModalHeader('Add New Point');
-      setNewPoint({ place: '', mode: 'single' });
-
-      // Update filtered groups if userType is group
-      if (userType === 'group') {
-        const relevantGroups = groupsList.filter((group) => group.point._id === addedPoint._id);
-        setFilteredGroups(relevantGroups);
-      }
-    } catch (error) {
-      console.error("Error adding new point:", error);
-      Swal.fire('Error', 'Failed to add new point.', 'error');
-    }
-  };
-
-  // -------------------- Handle New Delivery Boy --------------------
-  const handleNewDeliveryBoyChange = (e) => {
-    const { name, value } = e.target;
-    // Limit phone to 10 digits if desired
-    if (name === 'phone' && value.length > 10) return;
-
-    // Limit code to 4 digits
-    if (name === 'code' && value.length > 4) return;
-
-    setNewDeliveryBoy((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleAddNewDeliveryBoy = async () => {
-    const { name, phone, code } = newDeliveryBoy;
-
-    if (!name.trim() || !phone.trim() || !code.trim()) {
-      Swal.fire('Error', 'Please fill all fields (name, phone, code).', 'error');
-      return;
-    }
-    if (phone.length !== 10) {
-      Swal.fire('Error', 'Phone number must be 10 digits.', 'error');
-      return;
-    }
-    if (code.length !== 4) {
-      Swal.fire('Error', 'Code must be a 4-digit number.', 'error');
-      return;
-    }
-
-    try {
-      // Send POST request to add a new delivery boy
-      const response = await AddDeliveryBoy(newDeliveryBoy);
-      const addedDeliveryBoy = response.deliveryBoy;
-
-      // Update local states
-      setDeliveryBoysList([...deliveryBoysList, addedDeliveryBoy]);
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        deliveryBoy: addedDeliveryBoy._id,
-      }));
-      setDeliveryBoyInputValue(addedDeliveryBoy.name);
-
-      // Close modal & reset fields
-      setOpenDeliveryBoyModal(false);
-      setNewDeliveryBoy({ name: '', phone: '', code: '' });
-    } catch (error) {
-      console.error("Error adding new delivery boy:", error);
-      Swal.fire('Error', 'Failed to add new delivery boy.', 'error');
-    }
-  };
-
-  // -------------------- Common Handlers --------------------
+  // Handle Image Change
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
@@ -217,6 +107,7 @@ function Add() {
     setImagePreviews(previews);
   };
 
+  // Handle User Type Change
   const handleUserTypeChange = (value) => {
     setUserType(value);
     if (value === 'individual') {
@@ -224,10 +115,10 @@ function Add() {
     }
   };
 
+  // Handle Select Change for Point
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Limit phone field to 10 digits
     if (name === 'phone' && value.length > 10) {
       return;
     }
@@ -236,8 +127,6 @@ function Add() {
       const startDate = new Date(value);
       const endDate = new Date(startDate);
       endDate.setMonth(startDate.getMonth() + 1);
-
-      // Make sure endDate doesn't go out of range
       if (endDate.getDate() !== startDate.getDate()) {
         endDate.setDate(0);
       }
@@ -248,11 +137,9 @@ function Add() {
         startDate: value,
         endDate: endDate.toISOString().split('T')[0],
       });
-    } 
-    else if (name === 'point') {
+    } else if (name === 'point') {
       const inputValue = value;
       setPointInputValue(inputValue);
-
       const filtered = pointsList.filter((point) =>
         point.place.toLowerCase().includes(inputValue.toLowerCase())
       );
@@ -268,41 +155,19 @@ function Add() {
         ...formData,
         point: selectedPointId,
       });
-
       // Filter groups based on the selected point
       if (selectedPointId) {
-        const relevantGroups = groupsList.filter((group) => group.point._id === selectedPointId);
+        const relevantGroups = groupsList.filter(group => group.point._id === selectedPointId);
         setFilteredGroups(relevantGroups);
       } else {
         setFilteredGroups([]);
       }
 
+      // If userType is group, reset selectedGroup
       if (userType === 'group') {
         setSelectedGroup('');
       }
-    } 
-    else if (name === 'deliveryBoy') {
-      const inputValue = value;
-      setDeliveryBoyInputValue(inputValue);
-
-      const filtered = deliveryBoysList.filter((db) =>
-        db.name.toLowerCase().includes(inputValue.toLowerCase())
-      );
-      setFilteredDeliveryBoys(filtered);
-      setShowDeliveryBoySuggestions(inputValue.length > 0 && filtered.length > 0);
-
-      // Reset formData.deliveryBoy if input doesn't match exactly
-      const exactMatch = deliveryBoysList.find(
-        (db) => db.name.toLowerCase() === inputValue.toLowerCase()
-      );
-      const selectedDeliveryBoyId = exactMatch ? exactMatch._id : null;
-
-      setFormData((prev) => ({
-        ...prev,
-        deliveryBoy: selectedDeliveryBoyId,
-      }));
-    }
-    else {
+    } else {
       setFormData({
         ...formData,
         [name]: type === 'checkbox' ? checked : value,
@@ -310,6 +175,7 @@ function Add() {
     }
   };
 
+  // Handle Plan Change
   const handlePlanChange = (e) => {
     const { value, checked } = e.target;
     setFormData((prevFormData) => {
@@ -320,38 +186,40 @@ function Add() {
     });
   };
 
-  // -------------------- Handle Suggestions Click --------------------
-  const handleSuggestionClick = (point) => {
-    setFormData({
-      ...formData,
-      point: point._id,
-    });
-    setPointInputValue(point.place);
-    setShowSuggestions(false);
+  // Handle Submit New Point
+  const handleAddNewPoint = async () => {
+    if (!newPoint.place.trim()) {
+      Swal.fire('Error', 'Place is required.', 'error');
+      return;
+    }
+    try {
+      const response = await axios.post(`${BaseUrl}/api/points`, newPoint);
+      const addedPoint = response.data.point;
+      setPointsList([...pointsList, addedPoint]);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        point: addedPoint._id,
+      }));
+      setPointInputValue(addedPoint.place);
+      setOpenPointModal(false);
+      setModalHeader('Add New Point');
+      setNewPoint({ place: '', mode: 'single' });
 
-    // Filter groups based on the selected point
-    const relevantGroups = groupsList.filter((group) => group.point._id === point._id);
-    setFilteredGroups(relevantGroups);
-
-    if (userType === 'group') {
-      setSelectedGroup('');
+      // Update filtered groups if userType is group
+      if (userType === 'group') {
+        const relevantGroups = groupsList.filter(group => group.point._id === addedPoint._id);
+        setFilteredGroups(relevantGroups);
+      }
+    } catch (error) {
+      console.error("Error adding new point:", error);
+      Swal.fire('Error', 'Failed to add new point.', 'error');
     }
   };
 
-  const handleDeliveryBoySuggestionClick = (deliveryBoy) => {
-    setFormData((prev) => ({
-      ...prev,
-      deliveryBoy: deliveryBoy._id,
-    }));
-    setDeliveryBoyInputValue(deliveryBoy.name);
-    setShowDeliveryBoySuggestions(false);
-  };
-
-  // -------------------- Form Submit --------------------
+  // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // If the typed-in Point doesn't exist, open modal to add it
     if (!formData.point) {
       setModalHeader('The entered point does not exist. You can add it now.');
       setNewPoint({ ...newPoint, place: pointInputValue });
@@ -359,30 +227,8 @@ function Add() {
       return;
     }
 
-    // If userType = 'group' but no group was selected
     if (userType === 'group' && !selectedGroup) {
       Swal.fire('Error', 'Please select a group.', 'error');
-      return;
-    }
-
-    // If typed-in DeliveryBoy doesn't exist, prompt user
-    if (!formData.deliveryBoy) {
-      Swal.fire({
-        title: 'Delivery Boy Not Found',
-        text: 'The entered Delivery Boy does not exist. Do you want to add a new one?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, add',
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          setOpenDeliveryBoyModal(true);
-          setNewDeliveryBoy((prev) => ({
-            ...prev,
-            name: deliveryBoyInputValue,
-          }));
-        }
-      });
       return;
     }
 
@@ -400,13 +246,10 @@ function Add() {
       data.append('paymentMethod', formData.paymentMethod);
       data.append('paymentId', formData.paymentId);
       data.append('isVeg', formData.isVeg);
-      data.append('userType', userType);
-      // Group
+      data.append('userType', userType); // New field
       if (userType === 'group') {
-        data.append('group', selectedGroup);
+        data.append('group', selectedGroup); // New field
       }
-      // Delivery Boy
-      data.append('deliveryBoy', formData.deliveryBoy || '');
 
       // Append plan array
       formData.plan.forEach((item) => data.append('plan[]', item));
@@ -416,13 +259,13 @@ function Add() {
         data.append('images', image);
       });
 
-      const response = await CreatUser(data, {
+      const response = await axios.post(`${BaseUrl}/api/postOrder`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-console.log(response);
-      if (response.message === 'User and order added successfully') {
+
+      if (response.status === 200) {
         Swal.fire('Success', 'User added successfully', 'success');
         // Reset form data
         setFormData({
@@ -437,23 +280,46 @@ console.log(response);
           paymentMethod: '',
           paymentId: '',
           isVeg: false,
-          deliveryBoy: '',
         });
         setPointInputValue('');
         setSelectedGroup('');
         setImages([]);
         setImagePreviews([]);
-        setUserType('individual');
-        setDeliveryBoyInputValue('');
+        setUserType('individual'); // Reset to default
       } else {
-        Swal.fire('Error', response.message, 'error');
+        Swal.fire('Error', response.data.message, 'error');
       }
     } catch (error) {
-        setError({ message: error.message });
+      console.error('There was an error adding the user:', error);
+      if (error.response && error.response.data) {
+        setError(error.response.data);
+      } else {
+        setError({ message: 'An unexpected error occurred' });
+      }
     }
   };
 
-  // -------------------- Render --------------------
+  // Handle Suggestion Click
+  const handleSuggestionClick = (point) => {
+    setFormData({
+      ...formData,
+      point: point._id,
+    });
+    setPointInputValue(point.place);
+    setShowSuggestions(false);
+
+    // Filter groups based on the selected point
+    const relevantGroups = groupsList.filter(group => group.point._id === point._id);
+    setFilteredGroups(relevantGroups);
+
+    // If userType is group, reset selectedGroup
+    if (userType === 'group') {
+      setSelectedGroup('');
+    }
+  };
+
+  // Handle Add/Edit/Delete Group Actions (Not modified)
+
   const today = new Date();
   const twentyDaysAgo = new Date(today);
   twentyDaysAgo.setDate(today.getDate() - 29);
@@ -467,8 +333,7 @@ console.log(response);
             Add User
           </Typography>
         </CardHeader>
-
-        {/* -------------------- Add New Point Modal -------------------- */}
+        {/* Add New Point Modal */}
         <Dialog open={openPointModal} handler={setOpenPointModal} size="sm">
           <DialogHeader
             className={modalHeader.includes('not existing') ? 'text-red-500' : ''}
@@ -485,7 +350,7 @@ console.log(response);
             <Select
               label="Mode"
               value={newPoint.mode}
-              onChange={(val) => setNewPoint((prev) => ({ ...prev, mode: val }))}
+              onChange={(value) => handleSelectChange(value)}
             >
               <Option value="single">Single</Option>
               <Option value="bulk">Bulk</Option>
@@ -509,49 +374,7 @@ console.log(response);
           </DialogFooter>
         </Dialog>
 
-        {/* -------------------- Add New Delivery Boy Modal -------------------- */}
-        <Dialog open={openDeliveryBoyModal} handler={setOpenDeliveryBoyModal} size="sm">
-          <DialogHeader>Add New Delivery Boy</DialogHeader>
-          <DialogBody className="flex flex-col gap-4">
-            <Input
-              label="Name"
-              name="name"
-              value={newDeliveryBoy.name}
-              onChange={handleNewDeliveryBoyChange}
-            />
-            <Input
-              label="Phone (10 digits)"
-              type="number"
-              name="phone"
-              value={newDeliveryBoy.phone}
-              onChange={handleNewDeliveryBoyChange}
-            />
-            <Input
-              label="4-digit Code"
-              type="number"
-              name="code"
-              value={newDeliveryBoy.code}
-              onChange={handleNewDeliveryBoyChange}
-            />
-          </DialogBody>
-          <DialogFooter>
-            <Button
-              variant="text"
-              color="red"
-              onClick={() => {
-                setOpenDeliveryBoyModal(false);
-                setNewDeliveryBoy({ name: '', phone: '', code: '' });
-              }}
-            >
-              Cancel
-            </Button>
-            <Button variant="filled" color="green" onClick={handleAddNewDeliveryBoy}>
-              Save
-            </Button>
-          </DialogFooter>
-        </Dialog>
-
-        {/* -------------------- Error Modal -------------------- */}
+        {/* Error Modal */}
         {error && (
           <Dialog open={!!error} handler={() => setError(null)} size="sm">
             <DialogHeader className="text-red-500">Error</DialogHeader>
@@ -575,11 +398,9 @@ console.log(response);
           </Dialog>
         )}
 
-        {/* -------------------- Main Form -------------------- */}
         <form onSubmit={handleSubmit}>
           <CardBody className="p-6">
-
-            {/* -------------------- User Type Selection -------------------- */}
+            {/* User Type Selection */}
             <div className="mb-4">
               <Select
                 label="User Type"
@@ -592,7 +413,7 @@ console.log(response);
               </Select>
             </div>
 
-            {/* -------------------- Name -------------------- */}
+            {/* Name Input */}
             <div className="mb-4">
               <Input
                 type="text"
@@ -604,19 +425,21 @@ console.log(response);
               />
             </div>
 
-            {/* -------------------- Phone -------------------- */}
+            {/* Phone Input */}
             <div className="mb-4">
               <Input
                 type="number"
                 name="phone"
                 label="Phone Number"
                 value={formData.phone}
+                pattern="\d{10}"
+                maxLength="10"
                 onChange={handleChange}
                 required
               />
             </div>
 
-            {/* -------------------- Point (with suggestions) -------------------- */}
+            {/* Point Input with Suggestions */}
             <div className="mb-4 relative">
               <Input
                 type="text"
@@ -641,54 +464,55 @@ console.log(response);
               )}
             </div>
 
-            {/* -------------------- Group Selection (if userType=group) -------------------- */}
+            {/* Group Selection (Conditional) */}
             {userType === 'group' && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Select Group</label>
-                <div
-                  className={`relative ${!formData.point ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  onClick={() => {
-                    if (formData.point) {
-                      setDropdownOpen(!dropdownOpen);
-                    }
-                  }}
-                >
-                  {/* Selected Value */}
-                  <div
-                    className={`bg-white border border-gray-300 rounded px-3 py-2 cursor-pointer ${
-                      !formData.point ? 'pointer-events-none' : ''
-                    }`}
-                  >
-                    {selectedGroup
-                      ? filteredGroups.find((group) => group._id === selectedGroup)?.title || 'Select a Group'
-                      : 'Select a Group'}
-                  </div>
-                  {/* Dropdown Options */}
-                  {dropdownOpen && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-md">
-                      {filteredGroups.length > 0 ? (
-                        filteredGroups.map((group) => (
-                          <div
-                            key={group._id}
-                            className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                            onClick={() => {
-                              setSelectedGroup(group._id);
-                              setDropdownOpen(false);
-                            }}
-                          >
-                            {group.title} - {group.location}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="px-3 py-2 text-gray-500">No Groups Available</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+  <div className="mb-4">
+    {console.log('j', selectedGroup)}
+    <label className="block text-sm font-medium mb-1">Select Group</label>
+    <div 
+      className={`relative ${!formData.point ? 'opacity-50 cursor-not-allowed' : ''}`}
+      onClick={() => {
+        if (formData.point) {
+          setDropdownOpen(!dropdownOpen);
+        }
+      }}
+    >
+      {/* Selected Value */}
+      <div 
+        className={`bg-white border border-gray-300 rounded px-3 py-2 cursor-pointer ${
+          !formData.point ? 'pointer-events-none' : ''
+        }`}
+      >
+        {selectedGroup
+          ? filteredGroups.find((group) => group._id === selectedGroup)?.title || 'Select a Group'
+          : 'Select a Group'}
+      </div>
 
-            {/* -------------------- Add New Point Button -------------------- */}
+      {/* Dropdown Options */}
+      {dropdownOpen && (
+        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-md">
+          {filteredGroups.length > 0 ? (
+            filteredGroups.map((group) => (
+              <div
+                key={group._id}
+                className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                onClick={() => {
+                  setSelectedGroup(group._id);
+                  setDropdownOpen(false);
+                }}
+              >
+                {group.title} - {group.location}
+              </div>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-gray-500">No Groups Available</div>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
             <div className="flex justify-between items-center mb-4">
               <Button
                 color="orange"
@@ -700,44 +524,7 @@ console.log(response);
               </Button>
             </div>
 
-            {/* -------------------- Delivery Boy (with suggestions) -------------------- */}
-            <div className="mb-4 relative">
-              <Input
-                type="text"
-                name="deliveryBoy"
-                label="Delivery Boy"
-                value={deliveryBoyInputValue}
-                onChange={handleChange}
-                required
-              />
-              {showDeliveryBoySuggestions && (
-                <ul className="absolute bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto z-10">
-                  {filteredDeliveryBoys.map((db) => (
-                    <li
-                      key={db._id}
-                      className="p-2 cursor-pointer hover:bg-gray-200"
-                      onClick={() => handleDeliveryBoySuggestionClick(db)}
-                    >
-                      {db.name} (Ph: {db.phone}, Code: {db.code})
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* -------------------- Add New Delivery Boy Button -------------------- */}
-            <div className="flex justify-between items-center mb-4">
-              <Button
-                color="blue"
-                variant="text"
-                className="flex items-center gap-2"
-                onClick={() => setOpenDeliveryBoyModal(true)}
-              >
-                <PlusIcon className="w-5 h-5" /> New Delivery Boy
-              </Button>
-            </div>
-
-            {/* -------------------- Image Upload -------------------- */}
+            {/* Image Upload */}
             <div className="mb-4">
               <Typography variant="small" className="font-semibold mb-2">
                 Upload Drop-off Area Images (Maximum 3)
@@ -762,7 +549,7 @@ console.log(response);
               </div>
             </div>
 
-            {/* -------------------- Payment Status -------------------- */}
+            {/* Payment Status Select */}
             <div className="mb-4">
               <Select
                 name="paymentStatus"
@@ -779,7 +566,7 @@ console.log(response);
               </Select>
             </div>
 
-            {/* -------------------- Plan -------------------- */}
+            {/* Plan Selection (Always Displayed) */}
             <div className="mb-4">
               <Typography variant="small" className="font-semibold mb-2">
                 Plan
@@ -809,7 +596,7 @@ console.log(response);
               </div>
             </div>
 
-            {/* -------------------- Start Date -------------------- */}
+            {/* Start Date (Always Displayed) */}
             <div className="mb-4">
               <Input
                 type="date"
@@ -822,7 +609,7 @@ console.log(response);
               />
             </div>
 
-            {/* -------------------- End Date -------------------- */}
+            {/* End Date (Always Displayed) */}
             <div className="mb-4">
               <Input
                 type="date"
@@ -834,7 +621,7 @@ console.log(response);
               />
             </div>
 
-            {/* -------------------- Veg Toggle -------------------- */}
+            {/* Veg Toggle (Always Displayed) */}
             <div className="flex items-center mb-4">
               <Typography variant="small" className="mr-2">
                 Veg
@@ -850,7 +637,7 @@ console.log(response);
               />
             </div>
 
-            {/* -------------------- Payment Info (if not pending) -------------------- */}
+            {/* Conditionally render payment-related fields */}
             {formData.paymentStatus !== 'pending' && (
               <>
                 {/* Amount */}
@@ -866,16 +653,16 @@ console.log(response);
                   />
                 </div>
 
-                {/* Payment Method */}
+                {/* Payment Method Select */}
                 <div className="mb-4">
                   <Select
                     name="paymentMethod"
                     label="Payment Method"
                     value={formData.paymentMethod}
-                    onChange={(val) =>
+                    onChange={(value) =>
                       setFormData({
                         ...formData,
-                        paymentMethod: val,
+                        paymentMethod: value,
                         paymentId: '', // Reset paymentId when paymentMethod changes
                       })
                     }
@@ -887,7 +674,7 @@ console.log(response);
                   </Select>
                 </div>
 
-                {/* Payment ID */}
+                {/* Payment ID Input */}
                 <div className="mb-4">
                   <Input
                     type="text"
@@ -902,8 +689,6 @@ console.log(response);
               </>
             )}
           </CardBody>
-
-          {/* -------------------- Form Buttons -------------------- */}
           <div className="flex justify-end p-6">
             <Button
               type="button"
@@ -922,14 +707,12 @@ console.log(response);
                   paymentMethod: '',
                   paymentId: '',
                   isVeg: false,
-                  deliveryBoy: '',
                 });
                 setPointInputValue('');
                 setSelectedGroup('');
                 setImages([]);
                 setImagePreviews([]);
-                setUserType('individual');
-                setDeliveryBoyInputValue('');
+                setUserType('individual'); // Reset to default
               }}
             >
               Clear
